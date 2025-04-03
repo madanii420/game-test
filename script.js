@@ -97,7 +97,7 @@ function updatePlayer() {
         if (playerPosition.x === gridSize - 1 && playerPosition.y === gridSize - 1) {
             message.textContent = "You Win! 🎉";
             gameOver = true;
-            setTimeout(resetGame, 2000); // Auto-restart after 2 seconds
+            setTimeout(resetGame, 2000);
         }
     } else {
         playerCell.classList.add("wrong");
@@ -118,7 +118,7 @@ document.addEventListener("keydown", (e) => {
     }
 });
 
-// Click Support (only when path is hidden)
+// Click Support
 grid.addEventListener("click", (e) => {
     if (!canMove || !e.target.classList.contains("cell")) return;
     movePlayer(parseInt(e.target.dataset.x), parseInt(e.target.dataset.y));
