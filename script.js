@@ -84,7 +84,7 @@ function generatePath() {
     const target = [gridSize - 1, gridSize - 1];
     let visited = new Set([`${x},${y}`]);
     let steps = 0;
-    const maxSteps = gridSize * gridSize * 1.5; // Allow more steps for complexity
+    const maxSteps = gridSize * gridSize * 1.5;
 
     while (steps < maxSteps && (x !== target[0] || y !== target[1])) {
         let possibleMoves = [
@@ -93,14 +93,12 @@ function generatePath() {
             [x, y + 1], // Down
             [x, y - 1]  // Up
         ].filter(([nx, ny]) => 
-            nx >= 0 && nx < gridSize && ny >= 0 && ny < gridSize && // Within bounds
-            !visited.has(`${nx},${ny}`) // Not visited
+            nx >= 0 && nx < gridSize && ny >= 0 && ny < gridSize && 
+            !visited.has(`${nx},${ny}`)
         );
 
-        // For Hard and Impossible, prioritize complexity
         if (currentDifficulty === "hard" || currentDifficulty === "impossible") {
             if (possibleMoves.length > 0) {
-                // Bias towards making the path longer by not always moving towards the target
                 let nextMove = possibleMoves[Math.floor(Math.random() * possibleMoves.length)];
                 x = nextMove[0];
                 y = nextMove[1];
@@ -108,18 +106,16 @@ function generatePath() {
                 visited.add(`${x},${y}`);
                 steps++;
             } else {
-                // Backtrack if stuck
                 correctPath.pop();
-                if correctPath.length > 0) {
+                if (correctPath.length > 0) {
                     [x, y] = correctPath[correctPath.length - 1];
                     visited.delete(`${x},${y}`);
                 } else {
-                    break; // Restart if no path possible
+                    break;
                 }
             }
         } else {
-            // Easy and Medium: Simpler path
-            possibleMoves = possibleMoves.filter(([nx, ny]) => nx > x || ny > y); // Only right or down
+            possibleMoves = possibleMoves.filter(([nx, ny]) => nx > x || ny > y);
             if (possibleMoves.length > 0) {
                 let nextMove = possibleMoves[Math.floor(Math.random() * possibleMoves.length)];
                 x = nextMove[0];
@@ -132,7 +128,6 @@ function generatePath() {
         }
     }
 
-    // Ensure path reaches target for Hard/Impossible
     if (currentDifficulty === "hard" || currentDifficulty === "impossible") {
         while (x !== target[0] || y !== target[1]) {
             let dx = target[0] - x;
@@ -147,17 +142,23 @@ function generatePath() {
     }
 }
 
-// Show Path with Timer
+// Show Path with Timer (Difficulty-based time)
 function revealPath() {
     canMove = false;
-    let timeLeft = 10;
+    let timeLeft;
+    switch (currentDifficulty) {
+        case "easy": timeLeft = 12; break; // 12 seconds
+        case "medium": timeLeft = 10; break; // 10 seconds
+        case "hard": timeLeft = 8; break; // 8 seconds
+        case "impossible": timeLeft = 6; break; // 6 seconds
+    }
     timerDisplay.textContent = timeLeft;
     correctPath.forEach(([x, y]) => {
         let cell = document.querySelector(`[data-x="${x}"][data-y="${y}"]`);
         if (cell) cell.classList.add("path");
     });
     
-    clearInterval(timerInterval); // Ensure no lingering intervals
+    clearInterval(timerInterval);
     timerInterval = setInterval(() => {
         timeLeft--;
         timerDisplay.textContent = timeLeft;
@@ -209,11 +210,13 @@ function updatePlayer() {
     playerCell.classList.add("player");
     
     if (playerPosition.x === gridSize - 1 && playerPosition.y === gridSize - 1) {
-        message.textContent = "You Win! 🎉";
         gameOver = true;
         canMove = false;
         clearInterval(timerInterval);
         winOptions.style.display = "flex";
+        setTimeout(() => {
+            message.textContent = ""; // Clear "You Win!" after 1 second
+        }, 1000);
     }
 }
 
@@ -280,7 +283,7 @@ function changeDifficulty() {
 // Maintenance Mode Toggle (Shift + Q)
 document.addEventListener("keydown", async (e) => {
     if (e.shiftKey && e.key.toLowerCase() === "q") {
-        const userIP = await getUserIP(); // Mock function
+        const userIP = await getUserIP();
         if (userIP === OWNER_IP) {
             toggleMaintenanceMode();
         } else {
@@ -296,13 +299,13 @@ async function getUserIP() {
 
 function toggleMaintenanceMode() {
     isMaintenanceMode = !isMaintenanceMode;
-    localStorage.setItem("maintenanceMode", isMaintenanceMode); // Persist state
+    localStorage.setItem("maintenanceMode", isMaintenanceMode);
     if (isMaintenanceMode) {
         tutorial.style.display = "none";
         gameContainer.style.display = "none";
         maintenanceScreen.style.display = "flex";
     } else {
         maintenanceScreen.style.display = "none";
-        tutorial.style.display = "flex"; // Return to start screen
+        tutorial.style.display = "flex";
     }
 }
