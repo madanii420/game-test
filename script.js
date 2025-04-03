@@ -63,7 +63,7 @@ document.addEventListener("DOMContentLoaded", () => {
         updatePlayer();
     }
 
-    // Generate Path with one-block separation
+    // Generate Path (single continuous line, no adjacent cells except along path)
     function generatePath() {
         correctPath = [];
         let x = 0, y = 0;
@@ -71,15 +71,26 @@ document.addEventListener("DOMContentLoaded", () => {
         const target = [gridSize - 1, gridSize - 1];
         let visited = new Set([`${x},${y}`]);
 
+        // Helper to check if a cell is adjacent to any path cell (except the last one)
+        function isAdjacentToPath(nx, ny, excludeLast = false) {
+            const checkRange = excludeLast ? correctPath.length - 1 : correctPath.length;
+            for (let i = 0; i < checkRange; i++) {
+                const [px, py] = correctPath[i];
+                if (Math.abs(nx - px) + Math.abs(ny - py) === 1) return true;
+            }
+            return false;
+        }
+
         while (x !== target[0] || y !== target[1]) {
             let possibleMoves = [
-                [x + 2, y], // Right (skip 1)
-                [x - 2, y], // Left (skip 1)
-                [x, y + 2], // Down (skip 1)
-                [x, y - 2]  // Up (skip 1)
+                [x + 1, y], // Right
+                [x - 1, y], // Left
+                [x, y + 1], // Down
+                [x, y - 1]  // Up
             ].filter(([nx, ny]) => 
                 nx >= 0 && nx < gridSize && ny >= 0 && ny < gridSize && 
-                !visited.has(`${nx},${ny}`)
+                !visited.has(`${nx},${ny}`) && 
+                !isAdjacentToPath(nx, ny, true) // Exclude last cell from adjacency check
             );
 
             if (possibleMoves.length > 0) {
@@ -95,22 +106,11 @@ document.addEventListener("DOMContentLoaded", () => {
                 correctPath.push([x, y]);
                 visited.add(`${x},${y}`);
             } else {
-                // If stuck, try a single step to reach target
-                possibleMoves = [
-                    [x + 1, y], // Right
-                    [x - 1, y], // Left
-                    [x, y + 1], // Down
-                    [x, y - 1]  // Up
-                ].filter(([nx, ny]) => 
-                    nx >= 0 && nx < gridSize && ny >= 0 && ny < gridSize && 
-                    !visited.has(`${nx},${ny}`)
-                );
-                if (possibleMoves.length > 0) {
-                    let nextMove = possibleMoves[0];
-                    x = nextMove[0];
-                    y = nextMove[1];
-                    correctPath.push([x, y]);
-                    visited.add(`${x},${y}`);
+                // Backtrack or adjust if stuck (rare case)
+                if (correctPath.length > 1) {
+                    correctPath.pop();
+                    [x, y] = correctPath[correctPath.length - 1];
+                    visited.delete(`${x},${y}`);
                 } else {
                     break;
                 }
