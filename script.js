@@ -11,6 +11,7 @@ let playerPosition = { x: 0, y: 0 };
 let gameOver = false;
 let canMove = false;
 let timerInterval;
+let isDragging = false;
 
 // Start Game
 startBtn.addEventListener("click", startGame);
@@ -86,7 +87,7 @@ function hidePath() {
     updatePlayer();
 }
 
-// Move Player (only on correct path)
+// Move Player
 function movePlayer(x, y) {
     if (gameOver || !canMove) return;
     if (x < 0 || x >= gridSize || y < 0 || y >= gridSize) return;
@@ -102,14 +103,13 @@ function movePlayer(x, y) {
         playerPosition = { x, y };
         updatePlayer();
     } else {
-        // Wrong move - immediate reset
         const wrongCell = document.querySelector(`[data-x="${x}"][data-y="${y}"]`);
         wrongCell.classList.add("wrong");
         message.textContent = "Wrong move!";
         gameOver = true;
         canMove = false;
         clearInterval(timerInterval);
-        setTimeout(resetGame, 1000); // Reset after 1 second to show the wrong move
+        setTimeout(resetGame, 1000);
     }
 }
 
@@ -130,29 +130,42 @@ function updatePlayer() {
     }
 }
 
-// Arrow Key Support
-document.addEventListener("keydown", (e) => {
-    if (!canMove || gameOver) return;
-    switch(e.key) {
-        case "ArrowUp": movePlayer(playerPosition.x, playerPosition.y - 1); break;
-        case "ArrowDown": movePlayer(playerPosition.x, playerPosition.y + 1); break;
-        case "ArrowLeft": movePlayer(playerPosition.x - 1, playerPosition.y); break;
-        case "ArrowRight": movePlayer(playerPosition.x + 1, playerPosition.y); break;
-    }
-});
-
-// Click Support
-grid.addEventListener("click", (e) => {
+// Drag Movement (Mouse)
+grid.addEventListener("mousedown", (e) => {
     if (!canMove || !e.target.classList.contains("cell")) return;
+    isDragging = true;
     movePlayer(parseInt(e.target.dataset.x), parseInt(e.target.dataset.y));
 });
 
-// Touch Support
+grid.addEventListener("mousemove", (e) => {
+    if (!isDragging || !canMove || !e.target.classList.contains("cell")) return;
+    movePlayer(parseInt(e.target.dataset.x), parseInt(e.target.dataset.y));
+});
+
+grid.addEventListener("mouseup", () => {
+    isDragging = false;
+});
+
+grid.addEventListener("mouseleave", () => {
+    isDragging = false;
+});
+
+// Touch Movement (Phone)
+grid.addEventListener("touchstart", (e) => {
+    if (!canMove) return;
+    e.preventDefault();
+    const touch = e.touches[0];
+    const target = document.elementFromPoint(touch.clientX, touch.clientY);
+    if (target?.classList.contains("cell")) {
+        movePlayer(parseInt(target.dataset.x), parseInt(target.dataset.y));
+    }
+}, { passive: false });
+
 grid.addEventListener("touchmove", (e) => {
     if (!canMove) return;
     e.preventDefault();
-    let touch = e.touches[0];
-    let target = document.elementFromPoint(touch.clientX, touch.clientY);
+    const touch = e.touches[0];
+    const target = document.elementFromPoint(touch.clientX, touch.clientY);
     if (target?.classList.contains("cell")) {
         movePlayer(parseInt(target.dataset.x), parseInt(target.dataset.y));
     }
