@@ -1,7 +1,7 @@
 body {
     text-align: center;
     font-family: Arial, sans-serif;
-    background-color: #333; /* Darker gray */
+    background-color: #333;
     margin: 0;
     padding: 20px;
     min-height: 100vh;
@@ -12,11 +12,11 @@ body {
 
 #tutorial h1 {
     font-size: 3rem;
-    color: white; /* Better contrast with dark background */
+    color: white;
 }
 
 #creator {
-    color: skyblue;
+    color: skyblue; /* Verified sky blue for madanii420 */
     font-size: 2rem;
     margin: 10px 0;
 }
@@ -69,7 +69,7 @@ body {
     grid-template-columns: repeat(5, 60px);
     grid-template-rows: repeat(5, 60px);
     gap: 5px;
-    margin: 20px auto; /* Centered horizontally */
+    margin: 20px auto;
 }
 
 .cell {
@@ -82,6 +82,7 @@ body {
     font-size: 20px;
     background-color: white;
     user-select: none;
+    cursor: pointer;
 }
 
 .path {
