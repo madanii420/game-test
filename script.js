@@ -15,7 +15,6 @@ let isDragging = false;
 startBtn.addEventListener("click", () => {
     tutorial.style.display = "none";
     gameContainer.style.display = "block";
-    grid.style.display = "grid";
     createGrid();
     generatePath();
     revealPath();
@@ -35,7 +34,7 @@ function createGrid() {
     }
 }
 
-// Generate Random Path
+// Generate Path
 function generatePath() {
     correctPath = [];
     let x = 0, y = 0;
@@ -62,9 +61,9 @@ function revealPath() {
         if (cell) {
             cell.classList.add("path");
             if (index === 0) {
-                cell.innerHTML = "⬆️"; // Start arrow
+                cell.innerHTML = "⬆️";
             } else if (index === correctPath.length - 1) {
-                cell.innerHTML = "🏁"; // End flag
+                cell.innerHTML = "🏁";
             }
         }
     });
@@ -108,28 +107,17 @@ function updatePlayer() {
     }
 }
 
-// Drag and Touch Movement (Fixed for Mobile)
-grid.addEventListener("mousedown", (e) => { 
-    isDragging = true; 
-    movePlayer(e.target); 
-});
-grid.addEventListener("mousemove", (e) => { 
-    if (isDragging) movePlayer(e.target); 
-});
-grid.addEventListener("mouseup", () => { 
-    isDragging = false; 
-});
-grid.addEventListener("touchstart", (e) => { 
-    movePlayer(e.target); 
-});
+// Drag and Touch Movement
+grid.addEventListener("mousedown", (e) => { isDragging = true; movePlayer(e.target); });
+grid.addEventListener("mousemove", (e) => { if (isDragging) movePlayer(e.target); });
+grid.addEventListener("mouseup", () => { isDragging = false; });
+grid.addEventListener("touchstart", (e) => { movePlayer(e.target); });
 grid.addEventListener("touchmove", (e) => {
     let touch = e.touches[0];
     let target = document.elementFromPoint(touch.clientX, touch.clientY);
     movePlayer(target);
 });
-grid.addEventListener("touchend", () => { 
-    isDragging = false; 
-});
+grid.addEventListener("touchend", () => { isDragging = false; });
 
 // Reset Game
 function resetGame() {
