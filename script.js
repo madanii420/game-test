@@ -4,12 +4,11 @@ const message = document.getElementById("message");
 const tutorial = document.getElementById("tutorial");
 const gameContainer = document.getElementById("game-container");
 const startBtn = document.getElementById("start-btn");
-const nextBtn = document.getElementById("next-btn");
 
 let correctPath = [];
 let playerPosition = { x: 0, y: 0 };
 let gameOver = false;
-let canMove = false; // Prevent movement until the timer ends
+let canMove = false; // Prevent movement during memorization phase
 
 // Start Game on Button Click
 startBtn.addEventListener("click", () => {
@@ -50,7 +49,7 @@ function generatePath() {
 function revealPath() {
     canMove = false; // Disable movement
     message.textContent = "Memorize the path! 10 seconds...";
-    
+
     correctPath.forEach(([x, y]) => {
         document.querySelector(`[data-x="${x}"][data-y="${y}"]`).classList.add("path");
     });
@@ -75,6 +74,8 @@ function hidePath() {
 
 // Update Player Position
 function updatePlayer() {
+    if (!canMove) return; // Prevent movement before timer ends
+
     document.querySelectorAll(".cell").forEach(cell => cell.classList.remove("player", "wrong"));
     let playerCell = document.querySelector(`[data-x="${playerPosition.x}"][data-y="${playerPosition.y}"]`);
     
@@ -100,7 +101,7 @@ function updatePlayer() {
 let isDragging = false;
 
 grid.addEventListener("mousedown", (e) => {
-    if (gameOver || !canMove) return; // Prevent movement if gameOver or during memory phase
+    if (gameOver || !canMove) return;
     isDragging = true;
     movePlayer(e.target);
 });
