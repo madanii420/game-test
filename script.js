@@ -41,9 +41,6 @@ function generatePath() {
     let x = 0, y = 0;
     correctPath.push([x, y]);
     while (x < gridSize - 1 || y < gridSize - 1) {
-        let possibleMoves = [];
-        if (x < gridSize - 1) possibleMoves.push([x + 1, y]);
-        if (y < gridSize - 1) possibleMoves.push([x, y + 1]);
         if (Math.random() > 0.5 && x < gridSize - 1) {
             x++;
         } else if (y < gridSize - 1) {
@@ -57,9 +54,16 @@ function generatePath() {
 function revealPath() {
     canMove = false;
     message.textContent = "Memorize the path! 10 seconds...";
-    correctPath.forEach(([x, y]) => {
+    correctPath.forEach(([x, y], index) => {
         let cell = document.querySelector(`[data-x="${x}"][data-y="${y}"]`);
-        if (cell) cell.classList.add("path");
+        if (cell) {
+            cell.classList.add("path");
+            if (index === 0) {
+                cell.innerHTML = "⬆️"; // Start arrow
+            } else if (index === correctPath.length - 1) {
+                cell.innerHTML = "🏁"; // End flag
+            }
+        }
     });
     setTimeout(hidePath, 10000);
 }
