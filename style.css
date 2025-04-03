@@ -1,34 +1,43 @@
 body {
     font-family: Arial, sans-serif;
     text-align: center;
-    background-color: #222;
-    color: white;
+    background-color: #f0f0f0;
+}
+
+#game-container {
+    display: none;
+    margin-top: 20px;
 }
 
 #grid {
-    display: none;
-    grid-template-columns: repeat(5, 80px);
-    grid-template-rows: repeat(5, 80px);
-    gap: 5px;
-    margin-top: 20px;
-    background: #444;
-    padding: 10px;
-    border-radius: 10px;
-}
-
-.cell {
-    width: 80px;
-    height: 80px;
-    background-color: #666;
+    display: grid;
+    grid-template-columns: repeat(5, 50px);
+    grid-template-rows: repeat(5, 50px);
+    gap: 2px;
+    margin: auto;
+    background-color: #ccc;
+    padding: 5px;
     border-radius: 5px;
 }
 
+.cell {
+    width: 50px;
+    height: 50px;
+    border: 1px solid black;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 20px;
+    background-color: white;
+    user-select: none;
+}
+
 .path {
-    background-color: lime !important;
+    background-color: skyblue !important;
 }
 
 .player {
-    background-color: blue !important;
+    background-color: green !important;
 }
 
 .wrong {
@@ -36,12 +45,21 @@ body {
 }
 
 #message {
-    font-size: 20px;
+    font-size: 18px;
     margin-top: 10px;
+    color: skyblue;
 }
 
-#start-btn {
-    padding: 10px 20px;
-    font-size: 18px;
+button {
+    padding: 10px 15px;
+    font-size: 16px;
+    border: none;
+    background-color: skyblue;
+    color: white;
     cursor: pointer;
+    border-radius: 5px;
+}
+
+button:hover {
+    background-color: dodgerblue;
 }
