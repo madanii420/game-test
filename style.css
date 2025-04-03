@@ -100,13 +100,36 @@ body {
     background-color: red;
 }
 
-#win-buttons {
+#win-options {
     margin-top: 20px;
+    display: flex;
+    gap: 20px;
 }
 
-#reset-btn, #continue-btn {
+#same-difficulty-btn, #change-difficulty-btn {
     font-size: 1.8rem;
     padding: 10px 20px;
-    margin: 0 10px;
     cursor: pointer;
+}
+
+#maintenance-screen {
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background-color: #444; /* Dark grey */
+    width: 100%;
+    height: 100vh;
+    position: fixed;
+    top: 0;
+    left: 0;
+    color: white;
+}
+
+#maintenance-screen h1 {
+    font-size: 3rem;
+}
+
+#maintenance-screen img {
+    margin-top: 20px;
 }
