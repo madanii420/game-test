@@ -8,7 +8,7 @@ const startBtn = document.getElementById("start-btn");
 let correctPath = [];
 let playerPosition = { x: 0, y: 0 };
 let gameOver = false;
-let canMove = false; // Prevent movement during memorization phase
+let canMove = false;
 
 // Start Game on Button Click
 startBtn.addEventListener("click", () => {
@@ -33,21 +33,29 @@ function createGrid() {
     }
 }
 
-// Generate Random Path
+// Generate Multiple Random Paths
 function generatePath() {
+    correctPath = [];
     let x = 0, y = 0;
-    correctPath = [[x, y]];
+    correctPath.push([x, y]);
+
     while (x < gridSize - 1 || y < gridSize - 1) {
-        if (x === gridSize - 1) y++; 
-        else if (y === gridSize - 1) x++;
-        else Math.random() > 0.5 ? x++ : y++;
+        let possibleMoves = [];
+        if (x < gridSize - 1) possibleMoves.push([x + 1, y]);
+        if (y < gridSize - 1) possibleMoves.push([x, y + 1]);
+
+        if (Math.random() > 0.5 && x < gridSize - 1) {
+            x++;
+        } else if (y < gridSize - 1) {
+            y++;
+        }
         correctPath.push([x, y]);
     }
 }
 
 // Show Path for 10 Seconds
 function revealPath() {
-    canMove = false; // Disable movement
+    canMove = false; 
     message.textContent = "Memorize the path! 10 seconds...";
 
     correctPath.forEach(([x, y]) => {
@@ -69,16 +77,16 @@ function revealPath() {
 function hidePath() {
     document.querySelectorAll(".path").forEach(cell => cell.classList.remove("path"));
     message.textContent = "Now move!";
-    canMove = true; // Enable movement
+    canMove = true;
 }
 
 // Update Player Position
 function updatePlayer() {
-    if (!canMove) return; // Prevent movement before timer ends
+    if (!canMove) return;
 
     document.querySelectorAll(".cell").forEach(cell => cell.classList.remove("player", "wrong"));
     let playerCell = document.querySelector(`[data-x="${playerPosition.x}"][data-y="${playerPosition.y}"]`);
-    
+
     if (correctPath.some(pos => pos[0] === playerPosition.x && pos[1] === playerPosition.y)) {
         playerCell.classList.add("player");
         if (playerPosition.x === gridSize - 1 && playerPosition.y === gridSize - 1) {
@@ -90,7 +98,6 @@ function updatePlayer() {
         message.textContent = "Wrong step! Restarting...";
         gameOver = true;
 
-        // Restart game after 1.5 seconds
         setTimeout(() => {
             resetGame();
         }, 1500);
@@ -114,7 +121,6 @@ grid.addEventListener("mouseup", () => {
     isDragging = false;
 });
 
-// Touch Events
 grid.addEventListener("touchstart", (e) => {
     if (gameOver || !canMove) return;
     movePlayer(e.target);
