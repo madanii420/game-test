@@ -5,9 +5,10 @@ const timerDisplay = document.getElementById("timer");
 const tutorial = document.getElementById("tutorial");
 const gameContainer = document.getElementById("game-container");
 const difficultyButtons = document.querySelectorAll(".difficulty-btn");
-const resetBtn = document.getElementById("reset-btn");
-const continueBtn = document.getElementById("continue-btn");
-const winButtons = document.getElementById("win-buttons");
+const sameDifficultyBtn = document.getElementById("same-difficulty-btn");
+const changeDifficultyBtn = document.getElementById("change-difficulty-btn");
+const winOptions = document.getElementById("win-options");
+const maintenanceScreen = document.getElementById("maintenance-screen");
 
 let correctPath = [];
 let playerPosition = { x: 0, y: 0 };
@@ -15,12 +16,17 @@ let gameOver = false;
 let canMove = false;
 let timerInterval;
 let isDragging = false;
+let currentDifficulty = "medium"; // Track current difficulty
+let isMaintenanceMode = false;
+
+// Owner IP set to your provided IP
+const OWNER_IP = "192.168.100.16"; // Your IP
 
 // Difficulty Selection
 difficultyButtons.forEach(btn => {
     btn.addEventListener("click", () => {
-        const difficulty = btn.dataset.difficulty;
-        switch (difficulty) {
+        currentDifficulty = btn.dataset.difficulty;
+        switch (currentDifficulty) {
             case "easy": gridSize = 4; break;
             case "medium": gridSize = 5; break;
             case "hard": gridSize = 6; break;
@@ -30,14 +36,14 @@ difficultyButtons.forEach(btn => {
     });
 });
 
-// Reset and Continue Buttons
-resetBtn.addEventListener("click", () => location.reload());
-continueBtn.addEventListener("click", continueGame);
+// Win Options
+sameDifficultyBtn.addEventListener("click", continueSameDifficulty);
+changeDifficultyBtn.addEventListener("click", changeDifficulty);
 
 function startGame() {
     tutorial.style.display = "none";
     gameContainer.style.display = "flex";
-    winButtons.style.display = "none";
+    winOptions.style.display = "none";
     createGrid();
     generatePath();
     revealPath();
@@ -141,7 +147,7 @@ function updatePlayer() {
         gameOver = true;
         canMove = false;
         clearInterval(timerInterval);
-        winButtons.style.display = "flex";
+        winOptions.style.display = "flex";
     }
 }
 
@@ -192,8 +198,46 @@ function resetGame() {
     revealPath();
 }
 
-// Continue Game
-function continueGame() {
-    winButtons.style.display = "none";
+// Continue Same Difficulty
+function continueSameDifficulty() {
+    winOptions.style.display = "none";
     resetGame();
+}
+
+// Change Difficulty
+function changeDifficulty() {
+    gameContainer.style.display = "none";
+    tutorial.style.display = "flex";
+    winOptions.style.display = "none";
+}
+
+// Maintenance Mode Toggle (Shift + Q)
+document.addEventListener("keydown", async (e) => {
+    if (e.shiftKey && e.key.toLowerCase() === "q") {
+        // Simulate IP check (in a real app, this would be server-side)
+        const userIP = await getUserIP(); // Mock function
+        if (userIP === OWNER_IP) {
+            toggleMaintenanceMode();
+        } else {
+            console.log("Unauthorized IP:", userIP);
+        }
+    }
+});
+
+// Mock IP retrieval (replace with actual API call in production)
+async function getUserIP() {
+    // For demo, return OWNER_IP if running locally. In reality, use fetch('https://api.ipify.org?format=json')
+    return OWNER_IP; // Simulate your IP for now
+}
+
+function toggleMaintenanceMode() {
+    isMaintenanceMode = !isMaintenanceMode;
+    if (isMaintenanceMode) {
+        tutorial.style.display = "none";
+        gameContainer.style.display = "none";
+        maintenanceScreen.style.display = "flex";
+    } else {
+        maintenanceScreen.style.display = "none";
+        tutorial.style.display = "flex"; // Return to start screen
+    }
 }
