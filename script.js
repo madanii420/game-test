@@ -1,6 +1,7 @@
 const gridSize = 5;
 const grid = document.getElementById("grid");
 const message = document.getElementById("message");
+const timerDisplay = document.getElementById("timer");
 const tutorial = document.getElementById("tutorial");
 const gameContainer = document.getElementById("game-container");
 const startBtn = document.getElementById("start-btn");
@@ -9,13 +10,14 @@ let correctPath = [];
 let playerPosition = { x: 0, y: 0 };
 let gameOver = false;
 let canMove = false;
+let timerInterval;
 
 // Start Game
 startBtn.addEventListener("click", startGame);
 
 function startGame() {
     tutorial.style.display = "none";
-    gameContainer.style.display = "block";
+    gameContainer.style.display = "flex";
     createGrid();
     generatePath();
     revealPath();
@@ -52,17 +54,26 @@ function generatePath() {
     }
 }
 
-// Show Path
+// Show Path with Timer
 function revealPath() {
     canMove = false;
-    message.textContent = "Memorize the path! 10 seconds...";
+    let timeLeft = 10;
+    timerDisplay.textContent = timeLeft;
     correctPath.forEach(([x, y]) => {
         let cell = document.querySelector(`[data-x="${x}"][data-y="${y}"]`);
         if (cell) {
             cell.classList.add("path");
         }
     });
-    setTimeout(hidePath, 10000);
+    
+    timerInterval = setInterval(() => {
+        timeLeft--;
+        timerDisplay.textContent = timeLeft;
+        if (timeLeft <= 0) {
+            clearInterval(timerInterval);
+            hidePath();
+        }
+    }, 1000);
 }
 
 // Hide Path
@@ -75,35 +86,47 @@ function hidePath() {
     updatePlayer();
 }
 
-// Move Player
+// Move Player (only on correct path)
 function movePlayer(x, y) {
     if (gameOver || !canMove) return;
     if (x < 0 || x >= gridSize || y < 0 || y >= gridSize) return;
     if (Math.abs(x - playerPosition.x) + Math.abs(y - playerPosition.y) !== 1) return;
     
-    playerPosition = { x, y };
-    updatePlayer();
+    const newPos = [x, y];
+    const currentIndex = correctPath.findIndex(pos => 
+        pos[0] === playerPosition.x && pos[1] === playerPosition.y
+    );
+    const nextValidPos = correctPath[currentIndex + 1] || correctPath[currentIndex];
+    
+    if (newPos[0] === nextValidPos[0] && newPos[1] === nextValidPos[1]) {
+        playerPosition = { x, y };
+        updatePlayer();
+    } else {
+        // Wrong move - immediate reset
+        const wrongCell = document.querySelector(`[data-x="${x}"][data-y="${y}"]`);
+        wrongCell.classList.add("wrong");
+        message.textContent = "Wrong move!";
+        gameOver = true;
+        canMove = false;
+        clearInterval(timerInterval);
+        setTimeout(resetGame, 1000); // Reset after 1 second to show the wrong move
+    }
 }
 
 // Update Player Position
 function updatePlayer() {
     document.querySelectorAll(".cell").forEach(cell => 
-        cell.classList.remove("player", "wrong")
+        cell.classList.remove("player")
     );
     let playerCell = document.querySelector(`[data-x="${playerPosition.x}"][data-y="${playerPosition.y}"]`);
+    playerCell.classList.add("player");
     
-    if (correctPath.some(pos => pos[0] === playerPosition.x && pos[1] === playerPosition.y)) {
-        playerCell.classList.add("player");
-        if (playerPosition.x === gridSize - 1 && playerPosition.y === gridSize - 1) {
-            message.textContent = "You Win! 🎉";
-            gameOver = true;
-            setTimeout(resetGame, 2000);
-        }
-    } else {
-        playerCell.classList.add("wrong");
-        message.textContent = "Wrong step! Restarting...";
+    if (playerPosition.x === gridSize - 1 && playerPosition.y === gridSize - 1) {
+        message.textContent = "You Win! 🎉";
         gameOver = true;
-        setTimeout(resetGame, 1500);
+        canMove = false;
+        clearInterval(timerInterval);
+        setTimeout(resetGame, 2000);
     }
 }
 
@@ -139,6 +162,8 @@ grid.addEventListener("touchmove", (e) => {
 function resetGame() {
     playerPosition = { x: 0, y: 0 };
     gameOver = false;
+    canMove = false;
+    clearInterval(timerInterval);
     createGrid();
     generatePath();
     revealPath();
