@@ -1,10 +1,13 @@
-const gridSize = 5;
+let gridSize = 5; // Default medium
 const grid = document.getElementById("grid");
 const message = document.getElementById("message");
 const timerDisplay = document.getElementById("timer");
 const tutorial = document.getElementById("tutorial");
 const gameContainer = document.getElementById("game-container");
-const startBtn = document.getElementById("start-btn");
+const difficultyButtons = document.querySelectorAll(".difficulty-btn");
+const resetBtn = document.getElementById("reset-btn");
+const continueBtn = document.getElementById("continue-btn");
+const winButtons = document.getElementById("win-buttons");
 
 let correctPath = [];
 let playerPosition = { x: 0, y: 0 };
@@ -13,12 +16,28 @@ let canMove = false;
 let timerInterval;
 let isDragging = false;
 
-// Start Game
-startBtn.addEventListener("click", startGame);
+// Difficulty Selection
+difficultyButtons.forEach(btn => {
+    btn.addEventListener("click", () => {
+        const difficulty = btn.dataset.difficulty;
+        switch (difficulty) {
+            case "easy": gridSize = 4; break;
+            case "medium": gridSize = 5; break;
+            case "hard": gridSize = 6; break;
+            case "impossible": gridSize = 7; break;
+        }
+        startGame();
+    });
+});
+
+// Reset and Continue Buttons
+resetBtn.addEventListener("click", () => location.reload());
+continueBtn.addEventListener("click", continueGame);
 
 function startGame() {
     tutorial.style.display = "none";
     gameContainer.style.display = "flex";
+    winButtons.style.display = "none";
     createGrid();
     generatePath();
     revealPath();
@@ -27,6 +46,8 @@ function startGame() {
 // Generate Grid
 function createGrid() {
     grid.innerHTML = "";
+    grid.style.gridTemplateColumns = `repeat(${gridSize}, 60px)`;
+    grid.style.gridTemplateRows = `repeat(${gridSize}, 60px)`;
     for (let y = 0; y < gridSize; y++) {
         for (let x = 0; x < gridSize; x++) {
             let cell = document.createElement("div");
@@ -62,9 +83,7 @@ function revealPath() {
     timerDisplay.textContent = timeLeft;
     correctPath.forEach(([x, y]) => {
         let cell = document.querySelector(`[data-x="${x}"][data-y="${y}"]`);
-        if (cell) {
-            cell.classList.add("path");
-        }
+        if (cell) cell.classList.add("path");
     });
     
     timerInterval = setInterval(() => {
@@ -79,9 +98,7 @@ function revealPath() {
 
 // Hide Path
 function hidePath() {
-    document.querySelectorAll(".path").forEach(cell => {
-        cell.classList.remove("path");
-    });
+    document.querySelectorAll(".path").forEach(cell => cell.classList.remove("path"));
     message.textContent = "Now move!";
     canMove = true;
     updatePlayer();
@@ -115,9 +132,7 @@ function movePlayer(x, y) {
 
 // Update Player Position
 function updatePlayer() {
-    document.querySelectorAll(".cell").forEach(cell => 
-        cell.classList.remove("player")
-    );
+    document.querySelectorAll(".cell").forEach(cell => cell.classList.remove("player"));
     let playerCell = document.querySelector(`[data-x="${playerPosition.x}"][data-y="${playerPosition.y}"]`);
     playerCell.classList.add("player");
     
@@ -126,10 +141,7 @@ function updatePlayer() {
         gameOver = true;
         canMove = false;
         clearInterval(timerInterval);
-        setTimeout(() => {
-            gameContainer.style.display = "none";
-            tutorial.style.display = "flex"; // Return to tutorial screen
-        }, 2000);
+        winButtons.style.display = "flex";
     }
 }
 
@@ -145,13 +157,8 @@ grid.addEventListener("mousemove", (e) => {
     movePlayer(parseInt(e.target.dataset.x), parseInt(e.target.dataset.y));
 });
 
-grid.addEventListener("mouseup", () => {
-    isDragging = false;
-});
-
-grid.addEventListener("mouseleave", () => {
-    isDragging = false;
-});
+grid.addEventListener("mouseup", () => isDragging = false);
+grid.addEventListener("mouseleave", () => isDragging = false);
 
 // Touch Movement (Phone)
 grid.addEventListener("touchstart", (e) => {
@@ -183,4 +190,10 @@ function resetGame() {
     createGrid();
     generatePath();
     revealPath();
+}
+
+// Continue Game
+function continueGame() {
+    winButtons.style.display = "none";
+    resetGame();
 }
