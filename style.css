@@ -1,7 +1,7 @@
 body {
     text-align: center;
     font-family: Arial, sans-serif;
-    background-color: lightgray;
+    background-color: #333; /* Darker gray */
     margin: 0;
     padding: 20px;
     min-height: 100vh;
@@ -12,6 +12,7 @@ body {
 
 #tutorial h1 {
     font-size: 3rem;
+    color: white; /* Better contrast with dark background */
 }
 
 #creator {
@@ -22,6 +23,7 @@ body {
 
 #tutorial p {
     font-size: 1.8rem;
+    color: white;
 }
 
 #tutorial ul {
@@ -32,6 +34,7 @@ body {
 #tutorial li {
     font-size: 1.6rem;
     margin: 10px 0;
+    color: white;
 }
 
 #start-btn {
@@ -48,10 +51,12 @@ body {
 
 #game-container h1 {
     font-size: 3rem;
+    color: white;
 }
 
 #message {
     font-size: 2rem;
+    color: white;
 }
 
 #timer {
@@ -64,8 +69,7 @@ body {
     grid-template-columns: repeat(5, 60px);
     grid-template-rows: repeat(5, 60px);
     gap: 5px;
-    margin: 20px auto;
-    max-width: 100%;
+    margin: 20px auto; /* Centered horizontally */
 }
 
 .cell {
