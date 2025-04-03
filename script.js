@@ -89,7 +89,7 @@ function hidePath() {
 
 // Move Player
 function movePlayer(x, y) {
-    if (gameOver || !canMove) return; // Prevents movement before path is hidden
+    if (gameOver || !canMove) return;
     if (x < 0 || x >= gridSize || y < 0 || y >= gridSize) return;
     if (Math.abs(x - playerPosition.x) + Math.abs(y - playerPosition.y) !== 1) return;
     
@@ -126,19 +126,22 @@ function updatePlayer() {
         gameOver = true;
         canMove = false;
         clearInterval(timerInterval);
-        setTimeout(resetGame, 2000);
+        setTimeout(() => {
+            gameContainer.style.display = "none";
+            tutorial.style.display = "flex"; // Return to tutorial screen
+        }, 2000);
     }
 }
 
 // Drag Movement (Mouse)
 grid.addEventListener("mousedown", (e) => {
-    if (!canMove || !e.target.classList.contains("cell")) return; // Prevents clicks before path hidden
+    if (!canMove || !e.target.classList.contains("cell")) return;
     isDragging = true;
     movePlayer(parseInt(e.target.dataset.x), parseInt(e.target.dataset.y));
 });
 
 grid.addEventListener("mousemove", (e) => {
-    if (!isDragging || !canMove || !e.target.classList.contains("cell")) return; // Prevents moves before path hidden
+    if (!isDragging || !canMove || !e.target.classList.contains("cell")) return;
     movePlayer(parseInt(e.target.dataset.x), parseInt(e.target.dataset.y));
 });
 
@@ -152,7 +155,7 @@ grid.addEventListener("mouseleave", () => {
 
 // Touch Movement (Phone)
 grid.addEventListener("touchstart", (e) => {
-    if (!canMove) return; // Prevents touches before path hidden
+    if (!canMove) return;
     e.preventDefault();
     const touch = e.touches[0];
     const target = document.elementFromPoint(touch.clientX, touch.clientY);
@@ -162,7 +165,7 @@ grid.addEventListener("touchstart", (e) => {
 }, { passive: false });
 
 grid.addEventListener("touchmove", (e) => {
-    if (!canMove) return; // Prevents moves before path hidden
+    if (!canMove) return;
     e.preventDefault();
     const touch = e.touches[0];
     const target = document.elementFromPoint(touch.clientX, touch.clientY);
