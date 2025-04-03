@@ -10,13 +10,19 @@ body {
     align-items: center;
 }
 
+#tutorial {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
 #tutorial h1 {
     font-size: 3rem;
     color: white;
 }
 
 #creator {
-    color: skyblue;
+    color: blue; /* Changed from skyblue to blue */
     font-size: 2rem;
     margin: 10px 0;
 }
@@ -49,7 +55,7 @@ body {
 }
 
 #version {
-    font-size: 1rem; /* Small font */
+    font-size: 1rem;
     color: white;
     margin-top: 20px;
 }
