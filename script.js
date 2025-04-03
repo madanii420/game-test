@@ -19,13 +19,9 @@ document.addEventListener("DOMContentLoaded", () => {
     const changeDifficultyBtn = document.getElementById("change-difficulty-btn");
     const winOptions = document.getElementById("win-options");
 
-    // Verify buttons are found
-    console.log("Difficulty buttons found:", difficultyButtons.length); // Debug log
-
     // Difficulty Selection
     difficultyButtons.forEach(btn => {
         btn.addEventListener("click", () => {
-            console.log("Button clicked:", btn.dataset.difficulty); // Debug log
             currentDifficulty = btn.dataset.difficulty;
             switch (currentDifficulty) {
                 case "easy": gridSize = 4; break;
@@ -67,7 +63,7 @@ document.addEventListener("DOMContentLoaded", () => {
         updatePlayer();
     }
 
-    // Generate Path (Single continuous line for Hard and Impossible)
+    // Generate Path
     function generatePath() {
         correctPath = [];
         let x = 0, y = 0;
@@ -75,38 +71,40 @@ document.addEventListener("DOMContentLoaded", () => {
         const target = [gridSize - 1, gridSize - 1];
         let visited = new Set([`${x},${y}`]);
 
-        // For Hard and Impossible, ensure a single continuous path
         if (currentDifficulty === "hard" || currentDifficulty === "impossible") {
-            while (x !== target[0] || y !== target[1]) {
-                let possibleMoves = [
-                    [x + 1, y], // Right
-                    [x - 1, y], // Left
-                    [x, y + 1], // Down
-                    [x, y - 1]  // Up
-                ].filter(([nx, ny]) => 
-                    nx >= 0 && nx < gridSize && ny >= 0 && ny < gridSize && 
-                    !visited.has(`${nx},${ny}`)
-                );
-
-                if (possibleMoves.length > 0) {
-                    // Prioritize moves that get closer to the target, but randomize for variety
-                    let nextMove = possibleMoves[Math.floor(Math.random() * possibleMoves.length)];
-                    x = nextMove[0];
-                    y = nextMove[1];
-                    correctPath.push([x, y]);
-                    visited.add(`${x},${y}`);
+            // Hamiltonian-like path for 6x6 and 7x7
+            let direction = "right";
+            while (correctPath.length < gridSize * gridSize) {
+                if (direction === "right" && x + 1 < gridSize && !visited.has(`${x + 1},${y}`)) {
+                    x++;
+                } else if (direction === "down" && y + 1 < gridSize && !visited.has(`${x},${y + 1}`)) {
+                    y++;
+                } else if (direction === "left" && x - 1 >= 0 && !visited.has(`${x - 1},${y}`)) {
+                    x--;
+                } else if (direction === "up" && y - 1 >= 0 && !visited.has(`${x},${y - 1}`)) {
+                    y--;
                 } else {
-                    // If stuck, ensure we reach the target by forcing a move
-                    if (x < target[0]) x++;
-                    else if (y < target[1]) y++;
-                    if (!visited.has(`${x},${y}`)) {
-                        correctPath.push([x, y]);
-                        visited.add(`${x},${y}`);
-                    }
+                    // Change direction if stuck
+                    if (direction === "right") direction = "down";
+                    else if (direction === "down") direction = "left";
+                    else if (direction === "left") direction = "up";
+                    else if (direction === "up") direction = "right";
+                    continue;
                 }
+                correctPath.push([x, y]);
+                visited.add(`${x},${y}`);
+            }
+            // Ensure it ends at target
+            while (x !== target[0] || y !== target[1]) {
+                if (x < target[0] && !visited.has(`${x + 1},${y}`)) x++;
+                else if (y < target[1] && !visited.has(`${x},${y + 1}`)) y++;
+                else if (x > target[0] && !visited.has(`${x - 1},${y}`)) x--;
+                else if (y > target[1] && !visited.has(`${x},${y - 1}`)) y--;
+                correctPath.push([x, y]);
+                visited.add(`${x},${y}`);
             }
         } else {
-            // Easy and Medium: Simple right/down path
+            // Simple right/down path for easy and medium
             while (x !== target[0] || y !== target[1]) {
                 let possibleMoves = [
                     [x + 1, y], // Right
@@ -129,7 +127,7 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     }
 
-    // Show Path with Timer (Difficulty-based time)
+    // Show Path with Timer
     function revealPath() {
         canMove = false;
         let timeLeft;
@@ -139,7 +137,9 @@ document.addEventListener("DOMContentLoaded", () => {
             case "hard": timeLeft = 8; break;
             case "impossible": timeLeft = 6; break;
         }
+        message.textContent = "Memorize the path! "; // Reset message
         timerDisplay.textContent = timeLeft;
+        timerDisplay.style.display = "inline"; // Ensure timer is visible
         correctPath.forEach(([x, y]) => {
             let cell = document.querySelector(`[data-x="${x}"][data-y="${y}"]`);
             if (cell) cell.classList.add("path");
@@ -200,9 +200,10 @@ document.addEventListener("DOMContentLoaded", () => {
             gameOver = true;
             canMove = false;
             clearInterval(timerInterval);
+            message.textContent = "You Win!";
             winOptions.style.display = "flex";
             setTimeout(() => {
-                message.textContent = ""; // Clear "You Win!" after 1 second
+                message.textContent = "";
             }, 1000);
         }
     }
@@ -228,7 +229,7 @@ document.addEventListener("DOMContentLoaded", () => {
         e.preventDefault();
         const touch = e.touches[0];
         const target = document.elementFromPoint(touch.clientX, touch.clientY);
-        if (target?.classList.contains("cell")) {
+        if (target && target.classList.contains("cell")) {
             movePlayer(parseInt(target.dataset.x), parseInt(target.dataset.y));
         }
     }, { passive: false });
@@ -238,7 +239,7 @@ document.addEventListener("DOMContentLoaded", () => {
         e.preventDefault();
         const touch = e.touches[0];
         const target = document.elementFromPoint(touch.clientX, touch.clientY);
-        if (target?.classList.contains("cell")) {
+        if (target && target.classList.contains("cell")) {
             movePlayer(parseInt(target.dataset.x), parseInt(target.dataset.y));
         }
     }, { passive: false });
@@ -249,6 +250,7 @@ document.addEventListener("DOMContentLoaded", () => {
         gameOver = false;
         canMove = false;
         clearInterval(timerInterval);
+        grid.innerHTML = ""; // Clear grid to avoid overlap
         createGrid();
         generatePath();
         revealPath();
@@ -265,5 +267,8 @@ document.addEventListener("DOMContentLoaded", () => {
         gameContainer.style.display = "none";
         tutorial.style.display = "flex";
         winOptions.style.display = "none";
+        grid.innerHTML = ""; // Clear grid to prevent glitch
+        message.textContent = "Memorize the path! "; // Reset message
+        timerDisplay.style.display = "inline"; // Ensure timer visibility
     }
 });
