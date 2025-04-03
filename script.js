@@ -17,10 +17,19 @@ let canMove = false;
 let timerInterval;
 let isDragging = false;
 let currentDifficulty = "medium"; // Track current difficulty
-let isMaintenanceMode = false;
+let isMaintenanceMode = localStorage.getItem("maintenanceMode") === "true"; // Persist across refreshes
 
-// Owner IP set to your provided IP
+// Owner IP
 const OWNER_IP = "192.168.100.16"; // Your IP
+
+// Check maintenance mode on load
+window.addEventListener("load", () => {
+    if (isMaintenanceMode) {
+        tutorial.style.display = "none";
+        gameContainer.style.display = "none";
+        maintenanceScreen.style.display = "flex";
+    }
+});
 
 // Difficulty Selection
 difficultyButtons.forEach(btn => {
@@ -41,6 +50,7 @@ sameDifficultyBtn.addEventListener("click", continueSameDifficulty);
 changeDifficultyBtn.addEventListener("click", changeDifficulty);
 
 function startGame() {
+    if (isMaintenanceMode) return; // Prevent game start in maintenance mode
     tutorial.style.display = "none";
     gameContainer.style.display = "flex";
     winOptions.style.display = "none";
@@ -66,19 +76,74 @@ function createGrid() {
     updatePlayer();
 }
 
-// Generate Path
+// Generate Path (Enhanced for Hard and Impossible)
 function generatePath() {
     correctPath = [];
     let x = 0, y = 0;
     correctPath.push([x, y]);
-    while (x < gridSize - 1 || y < gridSize - 1) {
-        let possibleMoves = [];
-        if (x < gridSize - 1) possibleMoves.push([x + 1, y]);
-        if (y < gridSize - 1) possibleMoves.push([x, y + 1]);
-        let nextMove = possibleMoves[Math.floor(Math.random() * possibleMoves.length)];
-        x = nextMove[0];
-        y = nextMove[1];
-        correctPath.push([x, y]);
+    const target = [gridSize - 1, gridSize - 1];
+    let visited = new Set([`${x},${y}`]);
+    let steps = 0;
+    const maxSteps = gridSize * gridSize * 1.5; // Allow more steps for complexity
+
+    while (steps < maxSteps && (x !== target[0] || y !== target[1])) {
+        let possibleMoves = [
+            [x + 1, y], // Right
+            [x - 1, y], // Left
+            [x, y + 1], // Down
+            [x, y - 1]  // Up
+        ].filter(([nx, ny]) => 
+            nx >= 0 && nx < gridSize && ny >= 0 && ny < gridSize && // Within bounds
+            !visited.has(`${nx},${ny}`) // Not visited
+        );
+
+        // For Hard and Impossible, prioritize complexity
+        if (currentDifficulty === "hard" || currentDifficulty === "impossible") {
+            if (possibleMoves.length > 0) {
+                // Bias towards making the path longer by not always moving towards the target
+                let nextMove = possibleMoves[Math.floor(Math.random() * possibleMoves.length)];
+                x = nextMove[0];
+                y = nextMove[1];
+                correctPath.push([x, y]);
+                visited.add(`${x},${y}`);
+                steps++;
+            } else {
+                // Backtrack if stuck
+                correctPath.pop();
+                if correctPath.length > 0) {
+                    [x, y] = correctPath[correctPath.length - 1];
+                    visited.delete(`${x},${y}`);
+                } else {
+                    break; // Restart if no path possible
+                }
+            }
+        } else {
+            // Easy and Medium: Simpler path
+            possibleMoves = possibleMoves.filter(([nx, ny]) => nx > x || ny > y); // Only right or down
+            if (possibleMoves.length > 0) {
+                let nextMove = possibleMoves[Math.floor(Math.random() * possibleMoves.length)];
+                x = nextMove[0];
+                y = nextMove[1];
+                correctPath.push([x, y]);
+                visited.add(`${x},${y}`);
+            } else {
+                break;
+            }
+        }
+    }
+
+    // Ensure path reaches target for Hard/Impossible
+    if (currentDifficulty === "hard" || currentDifficulty === "impossible") {
+        while (x !== target[0] || y !== target[1]) {
+            let dx = target[0] - x;
+            let dy = target[1] - y;
+            if (dx > 0) x++;
+            else if (dy > 0) y++;
+            if (!visited.has(`${x},${y}`)) {
+                correctPath.push([x, y]);
+                visited.add(`${x},${y}`);
+            }
+        }
     }
 }
 
@@ -92,6 +157,7 @@ function revealPath() {
         if (cell) cell.classList.add("path");
     });
     
+    clearInterval(timerInterval); // Ensure no lingering intervals
     timerInterval = setInterval(() => {
         timeLeft--;
         timerDisplay.textContent = timeLeft;
@@ -214,7 +280,6 @@ function changeDifficulty() {
 // Maintenance Mode Toggle (Shift + Q)
 document.addEventListener("keydown", async (e) => {
     if (e.shiftKey && e.key.toLowerCase() === "q") {
-        // Simulate IP check (in a real app, this would be server-side)
         const userIP = await getUserIP(); // Mock function
         if (userIP === OWNER_IP) {
             toggleMaintenanceMode();
@@ -226,12 +291,12 @@ document.addEventListener("keydown", async (e) => {
 
 // Mock IP retrieval (replace with actual API call in production)
 async function getUserIP() {
-    // For demo, return OWNER_IP if running locally. In reality, use fetch('https://api.ipify.org?format=json')
     return OWNER_IP; // Simulate your IP for now
 }
 
 function toggleMaintenanceMode() {
     isMaintenanceMode = !isMaintenanceMode;
+    localStorage.setItem("maintenanceMode", isMaintenanceMode); // Persist state
     if (isMaintenanceMode) {
         tutorial.style.display = "none";
         gameContainer.style.display = "none";
