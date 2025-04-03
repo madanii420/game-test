@@ -17,13 +17,23 @@
             <li>❌ If you step on a wrong tile, you restart.</li>
             <li>🏆 Reach the final tile to win!</li>
         </ul>
-        <button id="start-btn">Start Game</button>
+        <div id="difficulty-selection">
+            <p>Select Difficulty:</p>
+            <button class="difficulty-btn" data-difficulty="easy">Easy (4x4)</button>
+            <button class="difficulty-btn" data-difficulty="medium">Medium (5x5)</button>
+            <button class="difficulty-btn" data-difficulty="hard">Hard (6x6)</button>
+            <button class="difficulty-btn" data-difficulty="impossible">Impossible (7x7)</button>
+        </div>
     </div>
 
     <div id="game-container" style="display: none;">
         <h1>The Grid Walk Challenge</h1>
         <p id="message">Memorize the path! <span id="timer">10</span> seconds...</p>
         <div id="grid"></div>
+        <div id="win-buttons" style="display: none;">
+            <button id="reset-btn">Reset</button>
+            <button id="continue-btn">Continue</button>
+        </div>
     </div>
 
     <script src="script.js"></script>
