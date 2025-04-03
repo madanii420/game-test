@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Grid Walk Challenge</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div id="tutorial">
+        <h1>Welcome to The Grid Walk Challenge</h1>
+        <p>🎮 How to Play:</p>
+        <ul>
+            <li>🔎 **Memorize the yellow path** shown at the start.</li>
+            <li>🎯 **Use arrow keys** to move your player.</li>
+            <li>❌ If you step on a **wrong tile**, you restart.</li>
+            <li>🏆 Reach the **final tile** to win!</li>
+        </ul>
+        <button id="start-btn">Start Game</button>
+    </div>
+
+    <div id="game-container" style="display: none;">
+        <h1>The Grid Walk Challenge</h1>
+        <p id="message">Memorize the path!</p>
+        <div id="grid"></div>
+        <button id="next-btn" style="display: none;">Next</button>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
