@@ -8,7 +8,6 @@ const difficultyButtons = document.querySelectorAll(".difficulty-btn");
 const sameDifficultyBtn = document.getElementById("same-difficulty-btn");
 const changeDifficultyBtn = document.getElementById("change-difficulty-btn");
 const winOptions = document.getElementById("win-options");
-const maintenanceScreen = document.getElementById("maintenance-screen");
 
 let correctPath = [];
 let playerPosition = { x: 0, y: 0 };
@@ -17,19 +16,6 @@ let canMove = false;
 let timerInterval;
 let isDragging = false;
 let currentDifficulty = "medium"; // Track current difficulty
-let isMaintenanceMode = localStorage.getItem("maintenanceMode") === "true"; // Persist across refreshes
-
-// Owner IP
-const OWNER_IP = "192.168.100.16"; // Your IP
-
-// Check maintenance mode on load
-window.addEventListener("load", () => {
-    if (isMaintenanceMode) {
-        tutorial.style.display = "none";
-        gameContainer.style.display = "none";
-        maintenanceScreen.style.display = "flex";
-    }
-});
 
 // Difficulty Selection
 difficultyButtons.forEach(btn => {
@@ -50,7 +36,6 @@ sameDifficultyBtn.addEventListener("click", continueSameDifficulty);
 changeDifficultyBtn.addEventListener("click", changeDifficulty);
 
 function startGame() {
-    if (isMaintenanceMode) return; // Prevent game start in maintenance mode
     tutorial.style.display = "none";
     gameContainer.style.display = "flex";
     winOptions.style.display = "none";
@@ -278,34 +263,4 @@ function changeDifficulty() {
     gameContainer.style.display = "none";
     tutorial.style.display = "flex";
     winOptions.style.display = "none";
-}
-
-// Maintenance Mode Toggle (Shift + Q)
-document.addEventListener("keydown", async (e) => {
-    if (e.shiftKey && e.key.toLowerCase() === "q") {
-        const userIP = await getUserIP();
-        if (userIP === OWNER_IP) {
-            toggleMaintenanceMode();
-        } else {
-            console.log("Unauthorized IP:", userIP);
-        }
-    }
-});
-
-// Mock IP retrieval (replace with actual API call in production)
-async function getUserIP() {
-    return OWNER_IP; // Simulate your IP for now
-}
-
-function toggleMaintenanceMode() {
-    isMaintenanceMode = !isMaintenanceMode;
-    localStorage.setItem("maintenanceMode", isMaintenanceMode);
-    if (isMaintenanceMode) {
-        tutorial.style.display = "none";
-        gameContainer.style.display = "none";
-        maintenanceScreen.style.display = "flex";
-    } else {
-        maintenanceScreen.style.display = "none";
-        tutorial.style.display = "flex";
-    }
 }
