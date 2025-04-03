@@ -77,9 +77,13 @@ function updatePlayer() {
         }
     } else {
         playerCell.classList.add("wrong");
-        message.textContent = "Wrong step! Try again.";
+        message.textContent = "Wrong step! Restarting...";
         gameOver = true;
-        setTimeout(resetGame, 1000);
+
+        // Restart game after 1.5 seconds
+        setTimeout(() => {
+            resetGame();
+        }, 1500);
     }
 }
 
@@ -106,18 +110,12 @@ grid.addEventListener("touchstart", (e) => {
     movePlayer(e.target);
 });
 
-grid.addEventListener("touchmove", (e) => {
-    let touch = e.touches[0];
-    let element = document.elementFromPoint(touch.clientX, touch.clientY);
-    movePlayer(element);
-});
-
 // Move Player Function
 function movePlayer(target) {
-    if (!target.classList.contains("cell")) return;
+    if (!target.classList.contains("cell") || gameOver) return;
     let x = parseInt(target.dataset.x);
     let y = parseInt(target.dataset.y);
-    if (Math.abs(playerPosition.x - x) + Math.abs(playerPosition.y - y) === 1) {
+    if (Math.abs(x - playerPosition.x) + Math.abs(y - playerPosition.y) === 1) {
         playerPosition = { x, y };
         updatePlayer();
     }
@@ -127,5 +125,6 @@ function movePlayer(target) {
 function resetGame() {
     playerPosition = { x: 0, y: 0 };
     message.textContent = "Memorize the path!";
+    gameOver = false;
     revealPath();
 }
