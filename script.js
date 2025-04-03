@@ -14,6 +14,7 @@ let canMove = false;
 startBtn.addEventListener("click", () => {
     tutorial.style.display = "none";
     gameContainer.style.display = "block";
+    grid.style.display = "grid";  // Show grid when game starts
     createGrid();
     generatePath();
     revealPath();
@@ -59,7 +60,8 @@ function revealPath() {
     message.textContent = "Memorize the path! 10 seconds...";
 
     correctPath.forEach(([x, y]) => {
-        document.querySelector(`[data-x="${x}"][data-y="${y}"]`).classList.add("path");
+        let cell = document.querySelector(`[data-x="${x}"][data-y="${y}"]`);
+        if (cell) cell.classList.add("path");
     });
 
     let countdown = 10;
@@ -78,63 +80,6 @@ function hidePath() {
     document.querySelectorAll(".path").forEach(cell => cell.classList.remove("path"));
     message.textContent = "Now move!";
     canMove = true;
-}
-
-// Update Player Position
-function updatePlayer() {
-    if (!canMove) return;
-
-    document.querySelectorAll(".cell").forEach(cell => cell.classList.remove("player", "wrong"));
-    let playerCell = document.querySelector(`[data-x="${playerPosition.x}"][data-y="${playerPosition.y}"]`);
-
-    if (correctPath.some(pos => pos[0] === playerPosition.x && pos[1] === playerPosition.y)) {
-        playerCell.classList.add("player");
-        if (playerPosition.x === gridSize - 1 && playerPosition.y === gridSize - 1) {
-            message.textContent = "You Win! 🎉";
-            gameOver = true;
-        }
-    } else {
-        playerCell.classList.add("wrong");
-        message.textContent = "Wrong step! Restarting...";
-        gameOver = true;
-
-        setTimeout(() => {
-            resetGame();
-        }, 1500);
-    }
-}
-
-// Drag and Touch Movement
-let isDragging = false;
-
-grid.addEventListener("mousedown", (e) => {
-    if (gameOver || !canMove) return;
-    isDragging = true;
-    movePlayer(e.target);
-});
-
-grid.addEventListener("mousemove", (e) => {
-    if (isDragging && canMove) movePlayer(e.target);
-});
-
-grid.addEventListener("mouseup", () => {
-    isDragging = false;
-});
-
-grid.addEventListener("touchstart", (e) => {
-    if (gameOver || !canMove) return;
-    movePlayer(e.target);
-});
-
-// Move Player Function
-function movePlayer(target) {
-    if (!target.classList.contains("cell") || gameOver || !canMove) return;
-    let x = parseInt(target.dataset.x);
-    let y = parseInt(target.dataset.y);
-    if (Math.abs(x - playerPosition.x) + Math.abs(y - playerPosition.y) === 1) {
-        playerPosition = { x, y };
-        updatePlayer();
-    }
 }
 
 // Reset Game
