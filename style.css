@@ -1,14 +1,47 @@
+body {
+    font-family: Arial, sans-serif;
+    text-align: center;
+    background-color: #222;
+    color: white;
+}
+
 #grid {
-    display: none; /* Initially hidden */
+    display: none;
     grid-template-columns: repeat(5, 80px);
     grid-template-rows: repeat(5, 80px);
     gap: 5px;
     margin-top: 20px;
-    background: #666;
+    background: #444;
     padding: 10px;
     border-radius: 10px;
 }
 
+.cell {
+    width: 80px;
+    height: 80px;
+    background-color: #666;
+    border-radius: 5px;
+}
+
 .path {
-    background-color: yellow !important; /* Highlight path better */
+    background-color: lime !important;
+}
+
+.player {
+    background-color: blue !important;
+}
+
+.wrong {
+    background-color: red !important;
+}
+
+#message {
+    font-size: 20px;
+    margin-top: 10px;
+}
+
+#start-btn {
+    padding: 10px 20px;
+    font-size: 18px;
+    cursor: pointer;
 }
