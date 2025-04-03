@@ -21,8 +21,8 @@ body {
     color: white;
 }
 
-#creator {
-    color: blue; /* Changed from skyblue to blue */
+#tutorial #creator {
+    color: blue !important; /* Increased specificity and !important to override any conflicts */
     font-size: 2rem;
     margin: 10px 0;
 }
