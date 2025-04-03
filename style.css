@@ -1,65 +1,68 @@
 body {
-    font-family: Arial, sans-serif;
     text-align: center;
-    background-color: #f0f0f0;
+    font-family: Arial, sans-serif;
+    background-color: #555;
+    color: white;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100vh;
+    margin: 0;
+}
+
+#tutorial {
+    font-size: 24px;
+    margin-bottom: 20px;
 }
 
 #game-container {
     display: none;
-    margin-top: 20px;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
 }
 
 #grid {
     display: grid;
-    grid-template-columns: repeat(5, 50px);
-    grid-template-rows: repeat(5, 50px);
-    gap: 2px;
-    margin: auto;
-    background-color: #ccc;
-    padding: 5px;
-    border-radius: 5px;
+    grid-template-columns: repeat(5, 80px);
+    grid-template-rows: repeat(5, 80px);
+    gap: 5px;
+    margin-top: 20px;
+    background: #666;
+    padding: 10px;
+    border-radius: 10px;
 }
 
 .cell {
-    width: 50px;
-    height: 50px;
-    border: 1px solid black;
+    width: 80px;
+    height: 80px;
+    border: 2px solid white;
     display: flex;
-    justify-content: center;
     align-items: center;
-    font-size: 20px;
-    background-color: white;
-    user-select: none;
+    justify-content: center;
+    font-size: 24px;
+    background-color: #777;
 }
 
 .path {
     background-color: skyblue !important;
 }
 
-.player {
-    background-color: green !important;
-}
-
-.wrong {
-    background-color: red !important;
-}
-
-#message {
-    font-size: 18px;
-    margin-top: 10px;
-    color: black;
-}
-
-button {
-    padding: 10px 15px;
-    font-size: 16px;
-    border: none;
-    background-color: skyblue;
-    color: white;
+.cell:hover {
     cursor: pointer;
-    border-radius: 5px;
 }
 
-button:hover {
-    background-color: dodgerblue;
+#start-btn {
+    padding: 15px 30px;
+    font-size: 24px;
+    cursor: pointer;
+    background-color: green;
+    color: white;
+    border: none;
+    border-radius: 8px;
+}
+
+#start-btn:hover {
+    background-color: darkgreen;
 }
