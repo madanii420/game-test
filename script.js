@@ -67,46 +67,55 @@ document.addEventListener("DOMContentLoaded", () => {
         updatePlayer();
     }
 
-    // Generate Path (Enhanced for Hard and Impossible)
+    // Generate Path (Single continuous line for Hard and Impossible)
     function generatePath() {
         correctPath = [];
         let x = 0, y = 0;
         correctPath.push([x, y]);
         const target = [gridSize - 1, gridSize - 1];
         let visited = new Set([`${x},${y}`]);
-        let steps = 0;
-        const maxSteps = gridSize * gridSize * 1.5;
 
-        while (steps < maxSteps && (x !== target[0] || y !== target[1])) {
-            let possibleMoves = [
-                [x + 1, y], // Right
-                [x - 1, y], // Left
-                [x, y + 1], // Down
-                [x, y - 1]  // Up
-            ].filter(([nx, ny]) => 
-                nx >= 0 && nx < gridSize && ny >= 0 && ny < gridSize && 
-                !visited.has(`${nx},${ny}`)
-            );
+        // For Hard and Impossible, ensure a single continuous path
+        if (currentDifficulty === "hard" || currentDifficulty === "impossible") {
+            while (x !== target[0] || y !== target[1]) {
+                let possibleMoves = [
+                    [x + 1, y], // Right
+                    [x - 1, y], // Left
+                    [x, y + 1], // Down
+                    [x, y - 1]  // Up
+                ].filter(([nx, ny]) => 
+                    nx >= 0 && nx < gridSize && ny >= 0 && ny < gridSize && 
+                    !visited.has(`${nx},${ny}`)
+                );
 
-            if (currentDifficulty === "hard" || currentDifficulty === "impossible") {
                 if (possibleMoves.length > 0) {
+                    // Prioritize moves that get closer to the target, but randomize for variety
                     let nextMove = possibleMoves[Math.floor(Math.random() * possibleMoves.length)];
                     x = nextMove[0];
                     y = nextMove[1];
                     correctPath.push([x, y]);
                     visited.add(`${x},${y}`);
-                    steps++;
                 } else {
-                    correctPath.pop();
-                    if (correctPath.length > 0) {
-                        [x, y] = correctPath[correctPath.length - 1];
-                        visited.delete(`${x},${y}`);
-                    } else {
-                        break;
+                    // If stuck, ensure we reach the target by forcing a move
+                    if (x < target[0]) x++;
+                    else if (y < target[1]) y++;
+                    if (!visited.has(`${x},${y}`)) {
+                        correctPath.push([x, y]);
+                        visited.add(`${x},${y}`);
                     }
                 }
-            } else {
-                possibleMoves = possibleMoves.filter(([nx, ny]) => nx > x || ny > y);
+            }
+        } else {
+            // Easy and Medium: Simple right/down path
+            while (x !== target[0] || y !== target[1]) {
+                let possibleMoves = [
+                    [x + 1, y], // Right
+                    [x, y + 1]  // Down
+                ].filter(([nx, ny]) => 
+                    nx >= 0 && nx < gridSize && ny >= 0 && ny < gridSize && 
+                    !visited.has(`${nx},${ny}`)
+                );
+
                 if (possibleMoves.length > 0) {
                     let nextMove = possibleMoves[Math.floor(Math.random() * possibleMoves.length)];
                     x = nextMove[0];
@@ -115,19 +124,6 @@ document.addEventListener("DOMContentLoaded", () => {
                     visited.add(`${x},${y}`);
                 } else {
                     break;
-                }
-            }
-        }
-
-        if (currentDifficulty === "hard" || currentDifficulty === "impossible") {
-            while (x !== target[0] || y !== target[1]) {
-                let dx = target[0] - x;
-                let dy = target[1] - y;
-                if (dx > 0) x++;
-                else if (dy > 0) y++;
-                if (!visited.has(`${x},${y}`)) {
-                    correctPath.push([x, y]);
-                    visited.add(`${x},${y}`);
                 }
             }
         }
