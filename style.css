@@ -1,69 +1,14 @@
-body {
-    text-align: center;
-    font-family: Arial, sans-serif;
-    background-color: #555; /* Slightly brighter */
-    color: white;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    height: 100vh;
-    margin: 0;
-    cursor: url('cursor.png'), auto; /* Custom mouse cursor */
-}
-
-#tutorial {
-    font-size: 24px;
-    margin-bottom: 20px;
-}
-
-#game-container {
-    display: none;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-}
-
 #grid {
-    display: grid;
+    display: none; /* Initially hidden */
     grid-template-columns: repeat(5, 80px);
     grid-template-rows: repeat(5, 80px);
     gap: 5px;
     margin-top: 20px;
-    background: #666; /* Brighter background */
+    background: #666;
     padding: 10px;
     border-radius: 10px;
 }
 
-.cell {
-    width: 80px;
-    height: 80px;
-    border: 2px solid white;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 24px;
-    background-color: #777; /* Brighter background */
-}
-
 .path {
-    background-color: white !important; /* Make path white */
-}
-
-.cell:hover {
-    cursor: url('cursor.png'), auto;
-}
-
-#start-btn {
-    padding: 15px 30px;
-    font-size: 24px;
-    cursor: pointer;
-    background-color: green;
-    color: white;
-    border: none;
-    border-radius: 8px;
-}
-
-#start-btn:hover {
-    background-color: darkgreen;
+    background-color: yellow !important; /* Highlight path better */
 }
