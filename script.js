@@ -9,6 +9,7 @@ const nextBtn = document.getElementById("next-btn");
 let correctPath = [];
 let playerPosition = { x: 0, y: 0 };
 let gameOver = false;
+let canMove = false; // Prevent movement until the timer ends
 
 // Start Game on Button Click
 startBtn.addEventListener("click", () => {
@@ -45,30 +46,38 @@ function generatePath() {
     }
 }
 
-// Show Path for 3 Seconds
+// Show Path for 10 Seconds
 function revealPath() {
+    canMove = false; // Disable movement
+    message.textContent = "Memorize the path! 10 seconds...";
+    
     correctPath.forEach(([x, y]) => {
         document.querySelector(`[data-x="${x}"][data-y="${y}"]`).classList.add("path");
     });
 
-    setTimeout(() => {
-        nextBtn.style.display = "block";
-    }, 3000);
+    let countdown = 10;
+    let countdownInterval = setInterval(() => {
+        countdown--;
+        message.textContent = `Memorize the path! ${countdown} seconds...`;
+        if (countdown <= 0) {
+            clearInterval(countdownInterval);
+            hidePath();
+        }
+    }, 1000);
 }
 
-// Hide Path and Start the Game when Next is Clicked
-nextBtn.addEventListener("click", () => {
+// Hide Path and Enable Movement
+function hidePath() {
     document.querySelectorAll(".path").forEach(cell => cell.classList.remove("path"));
-    message.textContent = "Drag to move!";
-    nextBtn.style.display = "none"; 
-    gameOver = false;
-    updatePlayer();
-});
+    message.textContent = "Now move!";
+    canMove = true; // Enable movement
+}
 
 // Update Player Position
 function updatePlayer() {
     document.querySelectorAll(".cell").forEach(cell => cell.classList.remove("player", "wrong"));
     let playerCell = document.querySelector(`[data-x="${playerPosition.x}"][data-y="${playerPosition.y}"]`);
+    
     if (correctPath.some(pos => pos[0] === playerPosition.x && pos[1] === playerPosition.y)) {
         playerCell.classList.add("player");
         if (playerPosition.x === gridSize - 1 && playerPosition.y === gridSize - 1) {
@@ -91,13 +100,13 @@ function updatePlayer() {
 let isDragging = false;
 
 grid.addEventListener("mousedown", (e) => {
-    if (gameOver) return;
+    if (gameOver || !canMove) return; // Prevent movement if gameOver or during memory phase
     isDragging = true;
     movePlayer(e.target);
 });
 
 grid.addEventListener("mousemove", (e) => {
-    if (isDragging) movePlayer(e.target);
+    if (isDragging && canMove) movePlayer(e.target);
 });
 
 grid.addEventListener("mouseup", () => {
@@ -106,13 +115,13 @@ grid.addEventListener("mouseup", () => {
 
 // Touch Events
 grid.addEventListener("touchstart", (e) => {
-    if (gameOver) return;
+    if (gameOver || !canMove) return;
     movePlayer(e.target);
 });
 
 // Move Player Function
 function movePlayer(target) {
-    if (!target.classList.contains("cell") || gameOver) return;
+    if (!target.classList.contains("cell") || gameOver || !canMove) return;
     let x = parseInt(target.dataset.x);
     let y = parseInt(target.dataset.y);
     if (Math.abs(x - playerPosition.x) + Math.abs(y - playerPosition.y) === 1) {
