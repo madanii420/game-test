@@ -41,6 +41,9 @@ function generatePath() {
     let x = 0, y = 0;
     correctPath.push([x, y]);
     while (x < gridSize - 1 || y < gridSize - 1) {
+        let possibleMoves = [];
+        if (x < gridSize - 1) possibleMoves.push([x + 1, y]);
+        if (y < gridSize - 1) possibleMoves.push([x, y + 1]);
         if (Math.random() > 0.5 && x < gridSize - 1) {
             x++;
         } else if (y < gridSize - 1) {
@@ -105,17 +108,28 @@ function updatePlayer() {
     }
 }
 
-// Drag and Touch Movement
-grid.addEventListener("mousedown", (e) => { isDragging = true; movePlayer(e.target); });
-grid.addEventListener("mousemove", (e) => { if (isDragging) movePlayer(e.target); });
-grid.addEventListener("mouseup", () => { isDragging = false; });
-grid.addEventListener("touchstart", (e) => { movePlayer(e.target); });
+// Drag and Touch Movement (Fixed for Mobile)
+grid.addEventListener("mousedown", (e) => { 
+    isDragging = true; 
+    movePlayer(e.target); 
+});
+grid.addEventListener("mousemove", (e) => { 
+    if (isDragging) movePlayer(e.target); 
+});
+grid.addEventListener("mouseup", () => { 
+    isDragging = false; 
+});
+grid.addEventListener("touchstart", (e) => { 
+    movePlayer(e.target); 
+});
 grid.addEventListener("touchmove", (e) => {
     let touch = e.touches[0];
     let target = document.elementFromPoint(touch.clientX, touch.clientY);
     movePlayer(target);
 });
-grid.addEventListener("touchend", () => { isDragging = false; });
+grid.addEventListener("touchend", () => { 
+    isDragging = false; 
+});
 
 // Reset Game
 function resetGame() {
