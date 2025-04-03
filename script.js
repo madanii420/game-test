@@ -51,7 +51,6 @@ function revealPath() {
         document.querySelector(`[data-x="${x}"][data-y="${y}"]`).classList.add("path");
     });
 
-    // Show "Next" button after 3 seconds
     setTimeout(() => {
         nextBtn.style.display = "block";
     }, 3000);
@@ -60,8 +59,8 @@ function revealPath() {
 // Hide Path and Start the Game when Next is Clicked
 nextBtn.addEventListener("click", () => {
     document.querySelectorAll(".path").forEach(cell => cell.classList.remove("path"));
-    message.textContent = "Move with arrow keys!";
-    nextBtn.style.display = "none"; // Hide Next button
+    message.textContent = "Drag to move!";
+    nextBtn.style.display = "none"; 
     gameOver = false;
     updatePlayer();
 });
@@ -84,16 +83,45 @@ function updatePlayer() {
     }
 }
 
-// Handle Movement
-document.addEventListener("keydown", (e) => {
+// Drag and Touch Movement
+let isDragging = false;
+
+grid.addEventListener("mousedown", (e) => {
     if (gameOver) return;
-    let { x, y } = playerPosition;
-    if (e.key === "ArrowUp" && y > 0) playerPosition.y--;
-    if (e.key === "ArrowDown" && y < gridSize - 1) playerPosition.y++;
-    if (e.key === "ArrowLeft" && x > 0) playerPosition.x--;
-    if (e.key === "ArrowRight" && x < gridSize - 1) playerPosition.x++;
-    updatePlayer();
+    isDragging = true;
+    movePlayer(e.target);
 });
+
+grid.addEventListener("mousemove", (e) => {
+    if (isDragging) movePlayer(e.target);
+});
+
+grid.addEventListener("mouseup", () => {
+    isDragging = false;
+});
+
+// Touch Events
+grid.addEventListener("touchstart", (e) => {
+    if (gameOver) return;
+    movePlayer(e.target);
+});
+
+grid.addEventListener("touchmove", (e) => {
+    let touch = e.touches[0];
+    let element = document.elementFromPoint(touch.clientX, touch.clientY);
+    movePlayer(element);
+});
+
+// Move Player Function
+function movePlayer(target) {
+    if (!target.classList.contains("cell")) return;
+    let x = parseInt(target.dataset.x);
+    let y = parseInt(target.dataset.y);
+    if (Math.abs(playerPosition.x - x) + Math.abs(playerPosition.y - y) === 1) {
+        playerPosition = { x, y };
+        updatePlayer();
+    }
+}
 
 // Reset Game
 function resetGame() {
