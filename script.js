@@ -63,7 +63,7 @@ document.addEventListener("DOMContentLoaded", () => {
         updatePlayer();
     }
 
-    // Generate Path
+    // Generate Path with one-block separation
     function generatePath() {
         correctPath = [];
         let x = 0, y = 0;
@@ -71,51 +71,42 @@ document.addEventListener("DOMContentLoaded", () => {
         const target = [gridSize - 1, gridSize - 1];
         let visited = new Set([`${x},${y}`]);
 
-        if (currentDifficulty === "hard" || currentDifficulty === "impossible") {
-            // Hamiltonian-like path for 6x6 and 7x7
-            let direction = "right";
-            while (correctPath.length < gridSize * gridSize) {
-                if (direction === "right" && x + 1 < gridSize && !visited.has(`${x + 1},${y}`)) {
-                    x++;
-                } else if (direction === "down" && y + 1 < gridSize && !visited.has(`${x},${y + 1}`)) {
-                    y++;
-                } else if (direction === "left" && x - 1 >= 0 && !visited.has(`${x - 1},${y}`)) {
-                    x--;
-                } else if (direction === "up" && y - 1 >= 0 && !visited.has(`${x},${y - 1}`)) {
-                    y--;
-                } else {
-                    // Change direction if stuck
-                    if (direction === "right") direction = "down";
-                    else if (direction === "down") direction = "left";
-                    else if (direction === "left") direction = "up";
-                    else if (direction === "up") direction = "right";
-                    continue;
-                }
+        while (x !== target[0] || y !== target[1]) {
+            let possibleMoves = [
+                [x + 2, y], // Right (skip 1)
+                [x - 2, y], // Left (skip 1)
+                [x, y + 2], // Down (skip 1)
+                [x, y - 2]  // Up (skip 1)
+            ].filter(([nx, ny]) => 
+                nx >= 0 && nx < gridSize && ny >= 0 && ny < gridSize && 
+                !visited.has(`${nx},${ny}`)
+            );
+
+            if (possibleMoves.length > 0) {
+                // Prioritize moves toward target
+                possibleMoves.sort((a, b) => {
+                    const distA = Math.abs(target[0] - a[0]) + Math.abs(target[1] - a[1]);
+                    const distB = Math.abs(target[0] - b[0]) + Math.abs(target[1] - b[1]);
+                    return distA - distB;
+                });
+                let nextMove = possibleMoves[0];
+                x = nextMove[0];
+                y = nextMove[1];
                 correctPath.push([x, y]);
                 visited.add(`${x},${y}`);
-            }
-            // Ensure it ends at target
-            while (x !== target[0] || y !== target[1]) {
-                if (x < target[0] && !visited.has(`${x + 1},${y}`)) x++;
-                else if (y < target[1] && !visited.has(`${x},${y + 1}`)) y++;
-                else if (x > target[0] && !visited.has(`${x - 1},${y}`)) x--;
-                else if (y > target[1] && !visited.has(`${x},${y - 1}`)) y--;
-                correctPath.push([x, y]);
-                visited.add(`${x},${y}`);
-            }
-        } else {
-            // Simple right/down path for easy and medium
-            while (x !== target[0] || y !== target[1]) {
-                let possibleMoves = [
+            } else {
+                // If stuck, try a single step to reach target
+                possibleMoves = [
                     [x + 1, y], // Right
-                    [x, y + 1]  // Down
+                    [x - 1, y], // Left
+                    [x, y + 1], // Down
+                    [x, y - 1]  // Up
                 ].filter(([nx, ny]) => 
                     nx >= 0 && nx < gridSize && ny >= 0 && ny < gridSize && 
                     !visited.has(`${nx},${ny}`)
                 );
-
                 if (possibleMoves.length > 0) {
-                    let nextMove = possibleMoves[Math.floor(Math.random() * possibleMoves.length)];
+                    let nextMove = possibleMoves[0];
                     x = nextMove[0];
                     y = nextMove[1];
                     correctPath.push([x, y]);
@@ -137,9 +128,9 @@ document.addEventListener("DOMContentLoaded", () => {
             case "hard": timeLeft = 8; break;
             case "impossible": timeLeft = 6; break;
         }
-        message.textContent = "Memorize the path! "; // Reset message
+        message.textContent = "Memorize the path! ";
         timerDisplay.textContent = timeLeft;
-        timerDisplay.style.display = "inline"; // Ensure timer is visible
+        timerDisplay.style.display = "inline";
         correctPath.forEach(([x, y]) => {
             let cell = document.querySelector(`[data-x="${x}"][data-y="${y}"]`);
             if (cell) cell.classList.add("path");
@@ -250,7 +241,7 @@ document.addEventListener("DOMContentLoaded", () => {
         gameOver = false;
         canMove = false;
         clearInterval(timerInterval);
-        grid.innerHTML = ""; // Clear grid to avoid overlap
+        grid.innerHTML = "";
         createGrid();
         generatePath();
         revealPath();
@@ -267,8 +258,8 @@ document.addEventListener("DOMContentLoaded", () => {
         gameContainer.style.display = "none";
         tutorial.style.display = "flex";
         winOptions.style.display = "none";
-        grid.innerHTML = ""; // Clear grid to prevent glitch
-        message.textContent = "Memorize the path! "; // Reset message
-        timerDisplay.style.display = "inline"; // Ensure timer visibility
+        grid.innerHTML = "";
+        message.textContent = "Memorize the path! ";
+        timerDisplay.style.display = "inline";
     }
 });
