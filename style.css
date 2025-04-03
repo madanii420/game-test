@@ -16,7 +16,7 @@ body {
 }
 
 #creator {
-    color: skyblue; /* Verified sky blue for madanii420 */
+    color: skyblue;
     font-size: 2rem;
     margin: 10px 0;
 }
@@ -37,9 +37,14 @@ body {
     color: white;
 }
 
-#start-btn {
-    font-size: 1.8rem;
-    padding: 15px 30px;
+#difficulty-selection {
+    margin-top: 20px;
+}
+
+.difficulty-btn {
+    font-size: 1.6rem;
+    padding: 10px 20px;
+    margin: 5px;
     cursor: pointer;
 }
 
@@ -66,8 +71,6 @@ body {
 
 #grid {
     display: grid;
-    grid-template-columns: repeat(5, 60px);
-    grid-template-rows: repeat(5, 60px);
     gap: 5px;
     margin: 20px auto;
 }
@@ -95,4 +98,15 @@ body {
 
 .wrong {
     background-color: red;
+}
+
+#win-buttons {
+    margin-top: 20px;
+}
+
+#reset-btn, #continue-btn {
+    font-size: 1.8rem;
+    padding: 10px 20px;
+    margin: 0 10px;
+    cursor: pointer;
 }
