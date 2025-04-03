@@ -11,11 +11,49 @@ body {
     align-items: center;
 }
 
+#tutorial h1 {
+    font-size: 3rem; /* Larger title */
+}
+
+#creator {
+    color: skyblue;
+    font-size: 2rem; /* Name size */
+    margin: 10px 0;
+}
+
+#tutorial p {
+    font-size: 1.8rem; /* How to play text */
+}
+
+#tutorial ul {
+    list-style-position: inside;
+    padding: 0;
+}
+
+#tutorial li {
+    font-size: 1.6rem; /* List items */
+    margin: 10px 0;
+}
+
+#start-btn {
+    font-size: 1.8rem;
+    padding: 15px 30px;
+    cursor: pointer;
+}
+
 #game-container {
     display: flex;
     flex-direction: column;
     align-items: center;
     margin-top: 20px;
+}
+
+#game-container h1 {
+    font-size: 3rem;
+}
+
+#message {
+    font-size: 2rem;
 }
 
 #grid {
