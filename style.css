@@ -6,23 +6,22 @@ body {
     padding: 20px;
     min-height: 100vh;
     display: flex;
-    flex-direction: column;
     justify-content: center;
     align-items: center;
 }
 
 #tutorial h1 {
-    font-size: 3rem; /* Larger title */
+    font-size: 3rem;
 }
 
 #creator {
     color: skyblue;
-    font-size: 2rem; /* Name size */
+    font-size: 2rem;
     margin: 10px 0;
 }
 
 #tutorial p {
-    font-size: 1.8rem; /* How to play text */
+    font-size: 1.8rem;
 }
 
 #tutorial ul {
@@ -31,7 +30,7 @@ body {
 }
 
 #tutorial li {
-    font-size: 1.6rem; /* List items */
+    font-size: 1.6rem;
     margin: 10px 0;
 }
 
@@ -45,7 +44,6 @@ body {
     display: flex;
     flex-direction: column;
     align-items: center;
-    margin-top: 20px;
 }
 
 #game-container h1 {
@@ -54,6 +52,11 @@ body {
 
 #message {
     font-size: 2rem;
+}
+
+#timer {
+    color: red;
+    font-weight: bold;
 }
 
 #grid {
