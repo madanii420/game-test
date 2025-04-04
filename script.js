@@ -11,9 +11,8 @@ let isTestMode = false;
 const difficultyOrder = ["easy", "medium", "hard", "impossible", "extreme", "nightmare"];
 let playerProgress = [];
 let hasLost = false;
-let walkedPath = []; // Array to store the player's walked path
+let walkedPath = [];
 
-// Wait for DOM to load before attaching listeners
 document.addEventListener("DOMContentLoaded", () => {
     const gridElement = document.getElementById("grid");
     const message = document.getElementById("message");
@@ -34,31 +33,26 @@ document.addEventListener("DOMContentLoaded", () => {
     const hintsBtn = document.getElementById("hints-btn");
     const hintsMessage = document.getElementById("hints-message");
 
-    // Function to calculate and set cell size based on screen width
     function setCellSize() {
         const viewportWidth = window.innerWidth;
-        const maxCellSize = 60; // Maximum cell size for larger screens
-        const minCellSize = 40; // Minimum cell size for playability
-        const paddingAndBorders = 20 + (gridSize - 1) * 5 + 10; // 20px padding, 5px gaps, 10px border
+        const maxCellSize = 60;
+        const minCellSize = 40;
+        const paddingAndBorders = 20 + (gridSize - 1) * 5 + 10;
         let availableWidth = viewportWidth - paddingAndBorders;
-        if (availableWidth < 0) availableWidth = viewportWidth; // Fallback for very small screens
+        if (availableWidth < 0) availableWidth = viewportWidth;
 
-        // Calculate cell size based on grid size and available width
         let cellSize = Math.floor(availableWidth / gridSize);
-        cellSize = Math.max(minCellSize, Math.min(maxCellSize, cellSize)); // Clamp between min and max
+        cellSize = Math.max(minCellSize, Math.min(maxCellSize, cellSize));
 
-        // Update grid template with the calculated cell size
         gridElement.style.gridTemplateColumns = `repeat(${gridSize}, ${cellSize}px)`;
         gridElement.style.gridTemplateRows = `repeat(${gridSize}, ${cellSize}px)`;
 
-        // Update cell styles
         document.querySelectorAll(".cell").forEach(cell => {
             cell.style.width = `${cellSize}px`;
             cell.style.height = `${cellSize}px`;
         });
     }
 
-    // Difficulty Selection
     difficultyButtons.forEach(btn => {
         btn.addEventListener("click", () => {
             currentDifficulty = btn.dataset.difficulty;
@@ -76,12 +70,10 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     });
 
-    // Hints Button
     hintsBtn.addEventListener("click", () => {
         hintsMessage.style.display = hintsMessage.style.display === "none" ? "block" : "none";
     });
 
-    // Win Options
     sameDifficultyBtn.addEventListener("click", continueSameDifficulty);
     nextDifficultyBtn.addEventListener("click", () => {
         const currentIndex = difficultyOrder.indexOf(currentDifficulty);
@@ -102,7 +94,6 @@ document.addEventListener("DOMContentLoaded", () => {
     });
     changeDifficultyBtn.addEventListener("click", changeDifficulty);
 
-    // Quit Button
     quitBtn.addEventListener("click", () => {
         gameContainer.style.display = "none";
         tutorial.style.display = "flex";
@@ -119,7 +110,6 @@ document.addEventListener("DOMContentLoaded", () => {
         isTestMode = false;
     });
 
-    // Test Phase Controls
     skipBtn.addEventListener("click", resetGame);
     exitTestBtn.addEventListener("click", () => {
         isTestMode = false;
@@ -127,7 +117,6 @@ document.addEventListener("DOMContentLoaded", () => {
         resetGame();
     });
 
-    // Play Again Button
     playAgainBtn.addEventListener("click", () => {
         congratsPage.style.display = "none";
         tutorial.style.display = "flex";
@@ -148,20 +137,15 @@ document.addEventListener("DOMContentLoaded", () => {
         resetGame();
     }
 
-    // Generate Grid
     function createGrid() {
         gridElement.innerHTML = "";
         grid = Array(gridSize).fill().map(() => Array(gridSize).fill(0));
         correctPath = [];
-        walkedPath = []; // Reset walked path
+        walkedPath = [];
 
-        // Set starting position at the top-left corner (0,0)
         playerPosition = { x: 0, y: 0 };
-
-        // Generate a full path
         generatePath();
 
-        // Render grid
         for (let y = 0; y < gridSize; y++) {
             for (let x = 0; x < gridSize; x++) {
                 let cell = document.createElement("div");
@@ -172,13 +156,10 @@ document.addEventListener("DOMContentLoaded", () => {
             }
         }
 
-        // Set cell size based on screen width
         setCellSize();
-
         updatePlayer();
     }
 
-    // Generate Path (Full path from top-left to bottom-right)
     function generatePath() {
         correctPath = [];
         let x = 0, y = 0;
@@ -197,7 +178,6 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     }
 
-    // Show Full Path on Grid with Timer
     function revealGrid() {
         if (isTestMode) {
             showTestPath();
@@ -212,7 +192,6 @@ document.addEventListener("DOMContentLoaded", () => {
         timerDisplay.style.opacity = "1";
         message.appendChild(timerDisplay);
 
-        // Show the entire path in blue
         correctPath.forEach(([x, y], index) => {
             let cell = document.querySelector(`[data-x="${x}"][data-y="${y}"]`);
             if (cell) {
@@ -239,7 +218,6 @@ document.addEventListener("DOMContentLoaded", () => {
         }, 1000);
     }
 
-    // Show Full Path in Test Mode
     function showTestPath() {
         message.textContent = "Test Mode: Edit the path or skip.";
         timerDisplay.style.display = "none";
@@ -257,7 +235,6 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     }
 
-    // Hide Path
     function hidePath() {
         document.querySelectorAll(".path, .path-test").forEach(cell => {
             cell.classList.remove("path", "path-test");
@@ -267,14 +244,11 @@ document.addEventListener("DOMContentLoaded", () => {
         canMove = true;
     }
 
-    // Move Player
     function movePlayer(x, y) {
         if (gameOver || !canMove) return;
 
-        // Check if the move is to an adjacent cell
         if (Math.abs(x - playerPosition.x) + Math.abs(y - playerPosition.y) !== 1) return;
 
-        // Check if the new position is within bounds
         if (x < 0 || x >= gridSize || y < 0 || y >= gridSize) {
             message.textContent = "Out of bounds!";
             gameOver = true;
@@ -283,7 +257,6 @@ document.addEventListener("DOMContentLoaded", () => {
             return;
         }
 
-        // Add current position to walked path before moving
         if (playerPosition.x !== x || playerPosition.y !== y) {
             walkedPath.push([playerPosition.x, playerPosition.y]);
         }
@@ -292,14 +265,12 @@ document.addEventListener("DOMContentLoaded", () => {
         updatePlayer();
     }
 
-    // Update Player Position
     function updatePlayer() {
         if (!canMove) return;
         document.querySelectorAll(".cell").forEach(cell => {
             cell.classList.remove("player", "wrong", "walked");
         });
 
-        // Highlight the walked path
         walkedPath.forEach(([x, y]) => {
             let walkedCell = document.querySelector(`[data-x="${x}"][data-y="${y}"]`);
             if (walkedCell) {
@@ -348,7 +319,6 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     }
 
-    // Drag and Touch Movement
     gridElement.addEventListener("mousedown", (e) => {
         if (!canMove || !e.target.classList.contains("cell")) return;
         isDragging = true;
@@ -369,7 +339,7 @@ document.addEventListener("DOMContentLoaded", () => {
         const touch = e.touches[0];
         const target = document.elementFromPoint(touch.clientX, touch.clientY);
         if (target && target.classList.contains("cell")) {
-            isDragging = true; // Enable dragging for touch
+            isDragging = true;
             movePlayer(parseInt(target.dataset.x), parseInt(target.dataset.y));
         }
     }, { passive: false });
@@ -385,20 +355,17 @@ document.addEventListener("DOMContentLoaded", () => {
     }, { passive: false });
 
     gridElement.addEventListener("touchend", () => {
-        isDragging = false; // Disable dragging when touch ends
+        isDragging = false;
     });
 
-    // Edit Path in Test Mode
     gridElement.addEventListener("click", (e) => {
         if (!isTestMode || !e.target.classList.contains("cell")) return;
         const x = parseInt(e.target.dataset.x);
         const y = parseInt(e.target.dataset.y);
         const posIndex = correctPath.findIndex(pos => pos[0] === x && pos[1] === y);
         if (posIndex === -1) {
-            // Add to path
             correctPath.push([x, y]);
             e.target.classList.add("path-test");
-            // Update emojis
             correctPath.forEach(([px, py], index) => {
                 let cell = document.querySelector(`[data-x="${px}"][data-y="${py}"]`);
                 cell.innerHTML = "";
@@ -409,11 +376,9 @@ document.addEventListener("DOMContentLoaded", () => {
                 }
             });
         } else {
-            // Remove from path
             correctPath.splice(posIndex, 1);
             e.target.classList.remove("path-test");
             e.target.innerHTML = "";
-            // Update emojis
             correctPath.forEach(([px, py], index) => {
                 let cell = document.querySelector(`[data-x="${px}"][data-y="${py}"]`);
                 cell.innerHTML = "";
@@ -426,7 +391,6 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     });
 
-    // Reset Game
     function resetGame() {
         playerPosition = { x: 0, y: 0 };
         gameOver = false;
@@ -446,14 +410,12 @@ document.addEventListener("DOMContentLoaded", () => {
         revealGrid();
     }
 
-    // Continue Same Difficulty
     function continueSameDifficulty() {
         winOptions.style.display = "none";
         testControls.style.display = "none";
         resetGame();
     }
 
-    // Change Difficulty
     function changeDifficulty() {
         gameContainer.style.display = "none";
         tutorial.style.display = "flex";
@@ -473,7 +435,6 @@ document.addEventListener("DOMContentLoaded", () => {
         isTestMode = false;
     }
 
-    // Test Mode Toggle (Shift + Q)
     document.addEventListener("keydown", (e) => {
         if (e.shiftKey && e.key.toLowerCase() === "q") {
             isTestMode = !isTestMode;
@@ -489,7 +450,6 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     });
 
-    // Adjust grid size on window resize
     window.addEventListener("resize", () => {
         if (!gameOver && canMove) {
             setCellSize();
@@ -497,7 +457,6 @@ document.addEventListener("DOMContentLoaded", () => {
     });
 });
 
-// Keyboard Movement
 document.addEventListener("keydown", (e) => {
     if (!canMove || gameOver) return;
     let { x, y } = playerPosition;
