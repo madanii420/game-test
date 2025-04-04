@@ -1,23 +1,37 @@
 let gridSize = 5; // Default medium
+let grid = [];
 let correctPath = [];
 let playerPosition = { x: 0, y: 0 };
 let gameOver = false;
 let canMove = false;
 let timerInterval;
 let isDragging = false;
-let currentDifficulty = "medium"; // Track current difficulty
+let currentDifficulty = "medium";
+let isTestMode = false;
+const difficultyOrder = ["easy", "medium", "hard", "impossible", "extreme", "nightmare"];
+let playerProgress = [];
+let hasLost = false;
 
 // Wait for DOM to load before attaching listeners
 document.addEventListener("DOMContentLoaded", () => {
-    const grid = document.getElementById("grid");
+    const gridElement = document.getElementById("grid");
     const message = document.getElementById("message");
     const timerDisplay = document.getElementById("timer");
     const tutorial = document.getElementById("tutorial");
     const gameContainer = document.getElementById("game-container");
     const difficultyButtons = document.querySelectorAll(".difficulty-btn");
     const sameDifficultyBtn = document.getElementById("same-difficulty-btn");
+    const nextDifficultyBtn = document.getElementById("next-difficulty-btn");
     const changeDifficultyBtn = document.getElementById("change-difficulty-btn");
+    const quitBtn = document.getElementById("quit-btn");
     const winOptions = document.getElementById("win-options");
+    const testControls = document.getElementById("test-controls");
+    const skipBtn = document.getElementById("skip-btn");
+    const exitTestBtn = document.getElementById("exit-test-btn");
+    const congratsPage = document.getElementById("congrats-page");
+    const playAgainBtn = document.getElementById("play-again-btn");
+    const hintsBtn = document.getElementById("hints-btn");
+    const hintsMessage = document.getElementById("hints-message");
 
     // Difficulty Selection
     difficultyButtons.forEach(btn => {
@@ -28,194 +42,284 @@ document.addEventListener("DOMContentLoaded", () => {
                 case "medium": gridSize = 5; break;
                 case "hard": gridSize = 6; break;
                 case "impossible": gridSize = 7; break;
+                case "extreme": gridSize = 8; break;
+                case "nightmare": gridSize = 9; break;
             }
+            playerProgress = [];
+            hasLost = false;
             startGame();
         });
     });
 
+    // Hints Button
+    hintsBtn.addEventListener("click", () => {
+        hintsMessage.style.display = hintsMessage.style.display === "none" ? "block" : "none";
+    });
+
     // Win Options
     sameDifficultyBtn.addEventListener("click", continueSameDifficulty);
+    nextDifficultyBtn.addEventListener("click", () => {
+        const currentIndex = difficultyOrder.indexOf(currentDifficulty);
+        if (currentIndex < difficultyOrder.length - 1) {
+            currentDifficulty = difficultyOrder[currentIndex + 1];
+            switch (currentDifficulty) {
+                case "easy": gridSize = 4; break;
+                case "medium": gridSize = 5; break;
+                case "hard": gridSize = 6; break;
+                case "impossible": gridSize = 7; break;
+                case "extreme": gridSize = 8; break;
+                case "nightmare": gridSize = 9; break;
+            }
+            winOptions.style.display = "none";
+            testControls.style.display = "none";
+            resetGame();
+        }
+    });
     changeDifficultyBtn.addEventListener("click", changeDifficulty);
+
+    // Quit Button
+    quitBtn.addEventListener("click", () => {
+        gameContainer.style.display = "none";
+        tutorial.style.display = "flex";
+        gameOver = false;
+        canMove = false;
+        clearInterval(timerInterval);
+        timerDisplay.style.display = "none";
+        message.textContent = "Memorize the path! ";
+        message.appendChild(timerDisplay);
+        message.style.color = "white";
+        document.body.style.backgroundColor = "#333";
+        gridElement.innerHTML = "";
+        testControls.style.display = "none";
+        isTestMode = false;
+    });
+
+    // Test Phase Controls
+    skipBtn.addEventListener("click", resetGame);
+    exitTestBtn.addEventListener("click", () => {
+        isTestMode = false;
+        testControls.style.display = "none";
+        resetGame();
+    });
+
+    // Play Again Button
+    playAgainBtn.addEventListener("click", () => {
+        congratsPage.style.display = "none";
+        tutorial.style.display = "flex";
+        playerProgress = [];
+        hasLost = false;
+        currentDifficulty = "easy";
+        gridSize = 4;
+        isTestMode = false;
+    });
 
     function startGame() {
         tutorial.style.display = "none";
         gameContainer.style.display = "flex";
         winOptions.style.display = "none";
-        createGrid();
-        generatePath();
-        revealPath();
+        testControls.style.display = "none";
+        message.style.color = "white";
+        document.body.style.backgroundColor = "#333";
+        resetGame();
     }
 
     // Generate Grid
     function createGrid() {
-        grid.innerHTML = "";
-        grid.style.gridTemplateColumns = `repeat(${gridSize}, 60px)`;
-        grid.style.gridTemplateRows = `repeat(${gridSize}, 60px)`;
+        gridElement.innerHTML = "";
+        gridElement.style.gridTemplateColumns = `repeat(${gridSize}, 60px)`;
+        gridElement.style.gridTemplateRows = `repeat(${gridSize}, 60px)`;
+        grid = Array(gridSize).fill().map(() => Array(gridSize).fill(0));
+        correctPath = [];
+
+        // Set starting position at the top-left corner (0,0)
+        playerPosition = { x: 0, y: 0 };
+
+        // Generate a full path
+        generatePath();
+
+        // Render grid
         for (let y = 0; y < gridSize; y++) {
             for (let x = 0; x < gridSize; x++) {
                 let cell = document.createElement("div");
                 cell.classList.add("cell");
                 cell.dataset.x = x;
                 cell.dataset.y = y;
-                grid.appendChild(cell);
+                gridElement.appendChild(cell);
             }
         }
         updatePlayer();
     }
 
-    // Generate Path (single continuous line, no adjacent cells except along path)
+    // Generate Path (Full path from top-left to bottom-right)
     function generatePath() {
         correctPath = [];
         let x = 0, y = 0;
         correctPath.push([x, y]);
-        const target = [gridSize - 1, gridSize - 1];
-        let visited = new Set([`${x},${y}`]);
-
-        // Helper to check if a cell is adjacent to any path cell (except the last one)
-        function isAdjacentToPath(nx, ny, excludeLast = false) {
-            const checkRange = excludeLast ? correctPath.length - 1 : correctPath.length;
-            for (let i = 0; i < checkRange; i++) {
-                const [px, py] = correctPath[i];
-                if (Math.abs(nx - px) + Math.abs(ny - py) === 1) return true;
+        while (x < gridSize - 1 || y < gridSize - 1) {
+            let possibleMoves = [];
+            if (x < gridSize - 1) possibleMoves.push([x + 1, y]);
+            if (y < gridSize - 1) possibleMoves.push([x, y + 1]);
+            if (possibleMoves.length === 0) break;
+            if (Math.random() > 0.5 && x < gridSize - 1) {
+                x++;
+            } else if (y < gridSize - 1) {
+                y++;
             }
-            return false;
-        }
-
-        while (x !== target[0] || y !== target[1]) {
-            let possibleMoves = [
-                [x + 1, y], // Right
-                [x - 1, y], // Left
-                [x, y + 1], // Down
-                [x, y - 1]  // Up
-            ].filter(([nx, ny]) => 
-                nx >= 0 && nx < gridSize && ny >= 0 && ny < gridSize && 
-                !visited.has(`${nx},${ny}`) && 
-                !isAdjacentToPath(nx, ny, true) // Exclude last cell from adjacency check
-            );
-
-            if (possibleMoves.length > 0) {
-                // Prioritize moves toward target
-                possibleMoves.sort((a, b) => {
-                    const distA = Math.abs(target[0] - a[0]) + Math.abs(target[1] - a[1]);
-                    const distB = Math.abs(target[0] - b[0]) + Math.abs(target[1] - b[1]);
-                    return distA - distB;
-                });
-                let nextMove = possibleMoves[0];
-                x = nextMove[0];
-                y = nextMove[1];
-                correctPath.push([x, y]);
-                visited.add(`${x},${y}`);
-            } else {
-                // Backtrack or adjust if stuck (rare case)
-                if (correctPath.length > 1) {
-                    correctPath.pop();
-                    [x, y] = correctPath[correctPath.length - 1];
-                    visited.delete(`${x},${y}`);
-                } else {
-                    break;
-                }
-            }
+            correctPath.push([x, y]);
         }
     }
 
-    // Show Path with Timer
-    function revealPath() {
-        canMove = false;
-        let timeLeft;
-        switch (currentDifficulty) {
-            case "easy": timeLeft = 12; break;
-            case "medium": timeLeft = 10; break;
-            case "hard": timeLeft = 8; break;
-            case "impossible": timeLeft = 6; break;
+    // Show Full Path on Grid with Timer
+    function revealGrid() {
+        if (isTestMode) {
+            showTestPath();
+            return;
         }
+        canMove = false;
+        let timeLeft = 5;
         message.textContent = "Memorize the path! ";
-        timerDisplay.textContent = timeLeft;
-        timerDisplay.style.display = "inline";
-        correctPath.forEach(([x, y]) => {
+        timerDisplay.textContent = timeLeft + " seconds...";
+        timerDisplay.style.display = "inline-block";
+        timerDisplay.style.visibility = "visible";
+        timerDisplay.style.opacity = "1";
+        message.appendChild(timerDisplay);
+
+        // Show the entire path in blue
+        correctPath.forEach(([x, y], index) => {
             let cell = document.querySelector(`[data-x="${x}"][data-y="${y}"]`);
-            if (cell) cell.classList.add("path");
+            if (cell) {
+                cell.classList.add("path");
+                if (index === 0) {
+                    cell.innerHTML = "⬆️";
+                } else if (index === correctPath.length - 1) {
+                    cell.innerHTML = "🏁";
+                }
+            }
         });
         
         clearInterval(timerInterval);
         timerInterval = setInterval(() => {
             timeLeft--;
-            timerDisplay.textContent = timeLeft;
+            timerDisplay.textContent = timeLeft + " seconds...";
             if (timeLeft <= 0) {
                 clearInterval(timerInterval);
+                timerDisplay.style.display = "none";
+                timerDisplay.style.visibility = "hidden";
+                timerDisplay.style.opacity = "0";
                 hidePath();
             }
         }, 1000);
     }
 
+    // Show Full Path in Test Mode
+    function showTestPath() {
+        message.textContent = "Test Mode: Edit the path or skip.";
+        timerDisplay.style.display = "none";
+        canMove = true;
+        correctPath.forEach(([x, y], index) => {
+            let cell = document.querySelector(`[data-x="${x}"][data-y="${y}"]`);
+            if (cell) {
+                cell.classList.add("path-test");
+                if (index === 0) {
+                    cell.innerHTML = "⬆️";
+                } else if (index === correctPath.length - 1) {
+                    cell.innerHTML = "🏁";
+                }
+            }
+        });
+    }
+
     // Hide Path
     function hidePath() {
-        document.querySelectorAll(".path").forEach(cell => cell.classList.remove("path"));
+        document.querySelectorAll(".path, .path-test").forEach(cell => {
+            cell.classList.remove("path", "path-test");
+            cell.innerHTML = "";
+        });
         message.textContent = "Now move!";
         canMove = true;
-        updatePlayer();
     }
 
     // Move Player
     function movePlayer(x, y) {
         if (gameOver || !canMove) return;
-        if (x < 0 || x >= gridSize || y < 0 || y >= gridSize) return;
+
+        // Check if the move is to an adjacent cell
         if (Math.abs(x - playerPosition.x) + Math.abs(y - playerPosition.y) !== 1) return;
-        
-        const newPos = [x, y];
-        const currentIndex = correctPath.findIndex(pos => 
-            pos[0] === playerPosition.x && pos[1] === playerPosition.y
-        );
-        const nextValidPos = correctPath[currentIndex + 1] || correctPath[currentIndex];
-        
-        if (newPos[0] === nextValidPos[0] && newPos[1] === nextValidPos[1]) {
-            playerPosition = { x, y };
-            updatePlayer();
-        } else {
-            const wrongCell = document.querySelector(`[data-x="${x}"][data-y="${y}"]`);
-            wrongCell.classList.add("wrong");
-            message.textContent = "Wrong move!";
+
+        // Check if the new position is within bounds
+        if (x < 0 || x >= gridSize || y < 0 || y >= gridSize) {
+            message.textContent = "Out of bounds!";
             gameOver = true;
             canMove = false;
-            clearInterval(timerInterval);
-            setTimeout(resetGame, 1000);
+            setTimeout(resetGame, 1500);
+            return;
         }
+
+        playerPosition = { x, y };
+        updatePlayer();
     }
 
     // Update Player Position
     function updatePlayer() {
-        document.querySelectorAll(".cell").forEach(cell => cell.classList.remove("player"));
+        if (!canMove) return;
+        document.querySelectorAll(".cell").forEach(cell => cell.classList.remove("player", "wrong"));
         let playerCell = document.querySelector(`[data-x="${playerPosition.x}"][data-y="${playerPosition.y}"]`);
-        playerCell.classList.add("player");
-        
-        if (playerPosition.x === gridSize - 1 && playerPosition.y === gridSize - 1) {
+        if (isTestMode || correctPath.some(pos => pos[0] === playerPosition.x && pos[1] === playerPosition.y)) {
+            playerCell.classList.add("player");
+            if (playerPosition.x === gridSize - 1 && playerPosition.y === gridSize - 1) {
+                message.textContent = "You Win! 🎉";
+                gameOver = true;
+                canMove = false;
+                if (!playerProgress.includes(currentDifficulty)) {
+                    playerProgress.push(currentDifficulty);
+                }
+                if (playerProgress.length === difficultyOrder.length && !hasLost) {
+                    gameContainer.style.display = "none";
+                    congratsPage.style.display = "flex";
+                    const victorySound = document.getElementById("victory-sound");
+                    victorySound.muted = false;
+                    victorySound.currentTime = 0;
+                    victorySound.play().then(() => {
+                        console.log("Victory sound played successfully");
+                    }).catch(error => {
+                        console.error("Error playing victory sound:", error);
+                    });
+                    confetti({
+                        particleCount: 100,
+                        spread: 70,
+                        origin: { y: 0.6 }
+                    });
+                } else {
+                    winOptions.style.display = "flex";
+                    testControls.style.display = isTestMode ? "flex" : "none";
+                }
+            }
+        } else {
+            playerCell.classList.add("wrong");
+            message.textContent = "Wrong step! Restarting...";
             gameOver = true;
             canMove = false;
-            clearInterval(timerInterval);
-            message.textContent = "You Win!";
-            winOptions.style.display = "flex";
-            setTimeout(() => {
-                message.textContent = "";
-            }, 1000);
+            hasLost = true;
+            setTimeout(resetGame, 1500);
         }
     }
 
-    // Drag Movement (Mouse)
-    grid.addEventListener("mousedown", (e) => {
+    // Drag and Touch Movement
+    gridElement.addEventListener("mousedown", (e) => {
         if (!canMove || !e.target.classList.contains("cell")) return;
         isDragging = true;
         movePlayer(parseInt(e.target.dataset.x), parseInt(e.target.dataset.y));
     });
 
-    grid.addEventListener("mousemove", (e) => {
+    gridElement.addEventListener("mousemove", (e) => {
         if (!isDragging || !canMove || !e.target.classList.contains("cell")) return;
         movePlayer(parseInt(e.target.dataset.x), parseInt(e.target.dataset.y));
     });
 
-    grid.addEventListener("mouseup", () => isDragging = false);
-    grid.addEventListener("mouseleave", () => isDragging = false);
+    gridElement.addEventListener("mouseup", () => isDragging = false);
+    gridElement.addEventListener("mouseleave", () => isDragging = false);
 
-    // Touch Movement (Phone)
-    grid.addEventListener("touchstart", (e) => {
+    gridElement.addEventListener("touchstart", (e) => {
         if (!canMove) return;
         e.preventDefault();
         const touch = e.touches[0];
@@ -225,7 +329,7 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     }, { passive: false });
 
-    grid.addEventListener("touchmove", (e) => {
+    gridElement.addEventListener("touchmove", (e) => {
         if (!canMove) return;
         e.preventDefault();
         const touch = e.touches[0];
@@ -234,6 +338,44 @@ document.addEventListener("DOMContentLoaded", () => {
             movePlayer(parseInt(target.dataset.x), parseInt(target.dataset.y));
         }
     }, { passive: false });
+
+    // Edit Path in Test Mode
+    gridElement.addEventListener("click", (e) => {
+        if (!isTestMode || !e.target.classList.contains("cell")) return;
+        const x = parseInt(e.target.dataset.x);
+        const y = parseInt(e.target.dataset.y);
+        const posIndex = correctPath.findIndex(pos => pos[0] === x && pos[1] === y);
+        if (posIndex === -1) {
+            // Add to path
+            correctPath.push([x, y]);
+            e.target.classList.add("path-test");
+            // Update emojis
+            correctPath.forEach(([px, py], index) => {
+                let cell = document.querySelector(`[data-x="${px}"][data-y="${py}"]`);
+                cell.innerHTML = "";
+                if (index === 0) {
+                    cell.innerHTML = "⬆️";
+                } else if (index === correctPath.length - 1) {
+                    cell.innerHTML = "🏁";
+                }
+            });
+        } else {
+            // Remove from path
+            correctPath.splice(posIndex, 1);
+            e.target.classList.remove("path-test");
+            e.target.innerHTML = "";
+            // Update emojis
+            correctPath.forEach(([px, py], index) => {
+                let cell = document.querySelector(`[data-x="${px}"][data-y="${py}"]`);
+                cell.innerHTML = "";
+                if (index === 0) {
+                    cell.innerHTML = "⬆️";
+                } else if (index === correctPath.length - 1) {
+                    cell.innerHTML = "🏁";
+                }
+            });
+        }
+    });
 
     // Reset Game
     function resetGame() {
@@ -241,15 +383,24 @@ document.addEventListener("DOMContentLoaded", () => {
         gameOver = false;
         canMove = false;
         clearInterval(timerInterval);
-        grid.innerHTML = "";
+        timerDisplay.style.display = "inline-block";
+        timerDisplay.style.visibility = "visible";
+        timerDisplay.style.opacity = "1";
+        message.textContent = "Memorize the path! ";
+        message.appendChild(timerDisplay);
+        message.style.color = "white";
+        document.body.style.backgroundColor = "#333";
+        winOptions.style.display = "none";
+        testControls.style.display = "none";
+        gridElement.innerHTML = "";
         createGrid();
-        generatePath();
-        revealPath();
+        revealGrid();
     }
 
     // Continue Same Difficulty
     function continueSameDifficulty() {
         winOptions.style.display = "none";
+        testControls.style.display = "none";
         resetGame();
     }
 
@@ -258,8 +409,63 @@ document.addEventListener("DOMContentLoaded", () => {
         gameContainer.style.display = "none";
         tutorial.style.display = "flex";
         winOptions.style.display = "none";
-        grid.innerHTML = "";
+        gameOver = false;
+        canMove = false;
+        clearInterval(timerInterval);
+        timerDisplay.style.display = "inline-block";
+        timerDisplay.style.visibility = "visible";
+        timerDisplay.style.opacity = "1";
         message.textContent = "Memorize the path! ";
-        timerDisplay.style.display = "inline";
+        message.appendChild(timerDisplay);
+        message.style.color = "white";
+        document.body.style.backgroundColor = "#333";
+        gridElement.innerHTML = "";
+        testControls.style.display = "none";
+        isTestMode = false;
+    }
+
+    // Test Mode Toggle (Shift + Q)
+    document.addEventListener("keydown", (e) => {
+        if (e.shiftKey && e.key.toLowerCase() === "q") {
+            isTestMode = !isTestMode;
+            if (isTestMode) {
+                testControls.style.display = "flex";
+                clearInterval(timerInterval);
+                timerDisplay.style.display = "none";
+                showTestPath();
+            } else {
+                testControls.style.display = "none";
+                resetGame();
+            }
+        }
+    });
+});
+
+// Keyboard Movement
+document.addEventListener("keydown", (e) => {
+    if (!canMove || gameOver) return;
+    let { x, y } = playerPosition;
+
+    switch (e.key) {
+        case "ArrowUp":
+        case "w":
+        case "W":
+            movePlayer(x, y - 1);
+            break;
+        case "ArrowDown":
+        case "s":
+        case "S":
+            movePlayer(x, y + 1);
+            break;
+        case "ArrowLeft":
+        case "a":
+        case "A":
+            movePlayer(x - 1, y);
+            break;
+        case "ArrowRight":
+        case "d":
+        case "D":
+            movePlayer(x + 1, y);
+            break;
     }
 });
