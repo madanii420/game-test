@@ -11,6 +11,7 @@ let isTestMode = false;
 const difficultyOrder = ["easy", "medium", "hard", "impossible", "extreme", "nightmare"];
 let playerProgress = [];
 let hasLost = false;
+let walkedPath = []; // Array to store the player's walked path
 
 // Wait for DOM to load before attaching listeners
 document.addEventListener("DOMContentLoaded", () => {
@@ -32,6 +33,30 @@ document.addEventListener("DOMContentLoaded", () => {
     const playAgainBtn = document.getElementById("play-again-btn");
     const hintsBtn = document.getElementById("hints-btn");
     const hintsMessage = document.getElementById("hints-message");
+
+    // Function to calculate and set cell size based on screen width
+    function setCellSize() {
+        const viewportWidth = window.innerWidth;
+        const maxCellSize = 60; // Maximum cell size for larger screens
+        const minCellSize = 40; // Minimum cell size for playability
+        const paddingAndBorders = 20 + (gridSize - 1) * 5 + 10; // 20px padding, 5px gaps, 10px border
+        let availableWidth = viewportWidth - paddingAndBorders;
+        if (availableWidth < 0) availableWidth = viewportWidth; // Fallback for very small screens
+
+        // Calculate cell size based on grid size and available width
+        let cellSize = Math.floor(availableWidth / gridSize);
+        cellSize = Math.max(minCellSize, Math.min(maxCellSize, cellSize)); // Clamp between min and max
+
+        // Update grid template with the calculated cell size
+        gridElement.style.gridTemplateColumns = `repeat(${gridSize}, ${cellSize}px)`;
+        gridElement.style.gridTemplateRows = `repeat(${gridSize}, ${cellSize}px)`;
+
+        // Update cell styles
+        document.querySelectorAll(".cell").forEach(cell => {
+            cell.style.width = `${cellSize}px`;
+            cell.style.height = `${cellSize}px`;
+        });
+    }
 
     // Difficulty Selection
     difficultyButtons.forEach(btn => {
@@ -126,10 +151,9 @@ document.addEventListener("DOMContentLoaded", () => {
     // Generate Grid
     function createGrid() {
         gridElement.innerHTML = "";
-        gridElement.style.gridTemplateColumns = `repeat(${gridSize}, 60px)`;
-        gridElement.style.gridTemplateRows = `repeat(${gridSize}, 60px)`;
         grid = Array(gridSize).fill().map(() => Array(gridSize).fill(0));
         correctPath = [];
+        walkedPath = []; // Reset walked path
 
         // Set starting position at the top-left corner (0,0)
         playerPosition = { x: 0, y: 0 };
@@ -147,6 +171,10 @@ document.addEventListener("DOMContentLoaded", () => {
                 gridElement.appendChild(cell);
             }
         }
+
+        // Set cell size based on screen width
+        setCellSize();
+
         updatePlayer();
     }
 
@@ -255,6 +283,11 @@ document.addEventListener("DOMContentLoaded", () => {
             return;
         }
 
+        // Add current position to walked path before moving
+        if (playerPosition.x !== x || playerPosition.y !== y) {
+            walkedPath.push([playerPosition.x, playerPosition.y]);
+        }
+
         playerPosition = { x, y };
         updatePlayer();
     }
@@ -262,7 +295,18 @@ document.addEventListener("DOMContentLoaded", () => {
     // Update Player Position
     function updatePlayer() {
         if (!canMove) return;
-        document.querySelectorAll(".cell").forEach(cell => cell.classList.remove("player", "wrong"));
+        document.querySelectorAll(".cell").forEach(cell => {
+            cell.classList.remove("player", "wrong", "walked");
+        });
+
+        // Highlight the walked path
+        walkedPath.forEach(([x, y]) => {
+            let walkedCell = document.querySelector(`[data-x="${x}"][data-y="${y}"]`);
+            if (walkedCell) {
+                walkedCell.classList.add("walked");
+            }
+        });
+
         let playerCell = document.querySelector(`[data-x="${playerPosition.x}"][data-y="${playerPosition.y}"]`);
         if (isTestMode || correctPath.some(pos => pos[0] === playerPosition.x && pos[1] === playerPosition.y)) {
             playerCell.classList.add("player");
@@ -325,12 +369,13 @@ document.addEventListener("DOMContentLoaded", () => {
         const touch = e.touches[0];
         const target = document.elementFromPoint(touch.clientX, touch.clientY);
         if (target && target.classList.contains("cell")) {
+            isDragging = true; // Enable dragging for touch
             movePlayer(parseInt(target.dataset.x), parseInt(target.dataset.y));
         }
     }, { passive: false });
 
     gridElement.addEventListener("touchmove", (e) => {
-        if (!canMove) return;
+        if (!isDragging || !canMove) return;
         e.preventDefault();
         const touch = e.touches[0];
         const target = document.elementFromPoint(touch.clientX, touch.clientY);
@@ -338,6 +383,10 @@ document.addEventListener("DOMContentLoaded", () => {
             movePlayer(parseInt(target.dataset.x), parseInt(target.dataset.y));
         }
     }, { passive: false });
+
+    gridElement.addEventListener("touchend", () => {
+        isDragging = false; // Disable dragging when touch ends
+    });
 
     // Edit Path in Test Mode
     gridElement.addEventListener("click", (e) => {
@@ -437,6 +486,13 @@ document.addEventListener("DOMContentLoaded", () => {
                 testControls.style.display = "none";
                 resetGame();
             }
+        }
+    });
+
+    // Adjust grid size on window resize
+    window.addEventListener("resize", () => {
+        if (!gameOver && canMove) {
+            setCellSize();
         }
     });
 });
