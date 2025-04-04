@@ -12,6 +12,9 @@ const difficultyOrder = ["easy", "medium", "hard", "impossible", "extreme", "nig
 let playerProgress = [];
 let hasLost = false;
 let walkedPath = [];
+let hintsClickCount = 0;
+let hintsClickTimer = null;
+let isHiddenFeatureUnlocked = false;
 
 document.addEventListener("DOMContentLoaded", () => {
     const gridElement = document.getElementById("grid");
@@ -53,6 +56,24 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     }
 
+    hintsBtn.addEventListener("click", () => {
+        hintsMessage.style.display = hintsMessage.style.display === "none" ? "block" : "none";
+
+        hintsClickCount++;
+        if (hintsClickCount === 1) {
+            hintsClickTimer = setTimeout(() => {
+                hintsClickCount = 0;
+            }, 2000);
+        }
+
+        if (hintsClickCount >= 5) {
+            isHiddenFeatureUnlocked = true;
+            clearTimeout(hintsClickTimer);
+            hintsClickCount = 0;
+            console.log("Hidden feature unlocked! You can now use Shift + Q on the tutorial page.");
+        }
+    });
+
     difficultyButtons.forEach(btn => {
         btn.addEventListener("click", () => {
             currentDifficulty = btn.dataset.difficulty;
@@ -68,10 +89,6 @@ document.addEventListener("DOMContentLoaded", () => {
             hasLost = false;
             startGame();
         });
-    });
-
-    hintsBtn.addEventListener("click", () => {
-        hintsMessage.style.display = hintsMessage.style.display === "none" ? "block" : "none";
     });
 
     sameDifficultyBtn.addEventListener("click", continueSameDifficulty);
@@ -125,13 +142,15 @@ document.addEventListener("DOMContentLoaded", () => {
         currentDifficulty = "easy";
         gridSize = 4;
         isTestMode = false;
+        const testModeMessage = document.getElementById("test-mode-message");
+        if (testModeMessage) testModeMessage.style.display = "none";
     });
 
     function startGame() {
         tutorial.style.display = "none";
         gameContainer.style.display = "flex";
         winOptions.style.display = "none";
-        testControls.style.display = "none";
+        testControls.style.display = isTestMode ? "flex" : "none"; // Show test controls if test mode is active
         message.style.color = "white";
         document.body.style.backgroundColor = "#333";
         resetGame();
@@ -437,15 +456,23 @@ document.addEventListener("DOMContentLoaded", () => {
 
     document.addEventListener("keydown", (e) => {
         if (e.shiftKey && e.key.toLowerCase() === "q") {
-            isTestMode = !isTestMode;
-            if (isTestMode) {
-                testControls.style.display = "flex";
-                clearInterval(timerInterval);
-                timerDisplay.style.display = "none";
-                showTestPath();
-            } else {
-                testControls.style.display = "none";
-                resetGame();
+            if (isHiddenFeatureUnlocked && tutorial.style.display !== "none") {
+                isTestMode = !isTestMode;
+                const testModeMessage = document.getElementById("test-mode-message");
+                if (testModeMessage) {
+                    testModeMessage.style.display = isTestMode ? "block" : "none";
+                }
+            } else if (tutorial.style.display === "none") {
+                isTestMode = !isTestMode;
+                if (isTestMode) {
+                    testControls.style.display = "flex";
+                    clearInterval(timerInterval);
+                    timerDisplay.style.display = "none";
+                    showTestPath();
+                } else {
+                    testControls.style.display = "none";
+                    resetGame();
+                }
             }
         }
     });
