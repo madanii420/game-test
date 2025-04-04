@@ -14,6 +14,7 @@ body {
     display: flex;
     flex-direction: column;
     align-items: center;
+    user-select: none;
 }
 
 #tutorial h1, #game-container h1 {
@@ -27,6 +28,7 @@ body {
     margin: 10px 0;
     cursor: pointer;
     transition: color 0.3s ease;
+    user-select: none;
 }
 
 #tutorial #creator:hover {
