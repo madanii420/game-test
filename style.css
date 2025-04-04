@@ -105,13 +105,14 @@ body {
     display: grid;
     gap: 5px;
     margin: 20px auto;
-    background-color: #2E7D32; /* Darker, muted green */
+    background-color: #2E7D32;
     border: 5px solid #fff;
+    box-sizing: border-box; /* Ensure border is included in width */
+    max-width: 100%; /* Prevent overflow on small screens */
 }
 
 .cell {
-    width: 60px;
-    height: 60px;
+    /* Remove fixed width and height, will be set dynamically via JS */
     border: 2px solid #fff;
     display: flex;
     align-items: center;
@@ -121,18 +122,23 @@ body {
     user-select: none;
     cursor: pointer;
     transition: background-color 0.3s ease;
+    aspect-ratio: 1 / 1; /* Ensure cells remain square */
 }
 
 .path {
-    background-color: #42A5F5; /* Softer blue */
+    background-color: #42A5F5;
 }
 
 .path-test {
-    background-color: #FFCA28; /* Softer amber yellow */
+    background-color: #FFCA28;
 }
 
 .player {
     background-color: blue;
+}
+
+.walked {
+    background-color: #FF5722; /* Orange color for the walked path */
 }
 
 .wrong {
@@ -230,4 +236,42 @@ body {
     0% { background-position: 0% 50%; }
     50% { background-position: 100% 50%; }
     100% { background-position: 0% 50%; }
+}
+
+/* Media query for smaller screens */
+@media (max-width: 600px) {
+    #game-container h1 {
+        font-size: 2rem;
+    }
+
+    #message {
+        font-size: 1.5rem;
+    }
+
+    #timer {
+        font-size: 1.5rem !important;
+    }
+
+    #quit-btn {
+        font-size: 1.2rem;
+        padding: 8px 16px;
+    }
+
+    #test-controls p {
+        font-size: 1.2rem;
+    }
+
+    #skip-btn, #exit-test-btn {
+        font-size: 1.2rem;
+        padding: 8px 16px;
+    }
+
+    #same-difficulty-btn, #next-difficulty-btn, #change-difficulty-btn {
+        font-size: 1.2rem;
+        padding: 8px 16px;
+    }
+
+    .cell {
+        font-size: 16px; /* Smaller emoji size on mobile */
+    }
 }
