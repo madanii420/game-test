@@ -12,8 +12,8 @@ const difficultyOrder = ["easy", "medium", "hard", "impossible", "extreme", "nig
 let playerProgress = [];
 let hasLost = false;
 let walkedPath = [];
-let hintsClickCount = 0;
-let hintsClickTimer = null;
+let creatorClickCount = 0;
+let creatorClickTimer = null;
 let isHiddenFeatureUnlocked = false;
 
 document.addEventListener("DOMContentLoaded", () => {
@@ -35,6 +35,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const playAgainBtn = document.getElementById("play-again-btn");
     const hintsBtn = document.getElementById("hints-btn");
     const hintsMessage = document.getElementById("hints-message");
+    const creator = document.getElementById("creator");
 
     function setCellSize() {
         const viewportWidth = window.innerWidth;
@@ -58,18 +59,20 @@ document.addEventListener("DOMContentLoaded", () => {
 
     hintsBtn.addEventListener("click", () => {
         hintsMessage.style.display = hintsMessage.style.display === "none" ? "block" : "none";
+    });
 
-        hintsClickCount++;
-        if (hintsClickCount === 1) {
-            hintsClickTimer = setTimeout(() => {
-                hintsClickCount = 0;
+    creator.addEventListener("click", () => {
+        creatorClickCount++;
+        if (creatorClickCount === 1) {
+            creatorClickTimer = setTimeout(() => {
+                creatorClickCount = 0;
             }, 2000);
         }
 
-        if (hintsClickCount >= 5) {
+        if (creatorClickCount >= 5) {
             isHiddenFeatureUnlocked = true;
-            clearTimeout(hintsClickTimer);
-            hintsClickCount = 0;
+            clearTimeout(creatorClickTimer);
+            creatorClickCount = 0;
             console.log("Hidden feature unlocked! You can now use Shift + Q on the tutorial page.");
         }
     });
@@ -150,7 +153,7 @@ document.addEventListener("DOMContentLoaded", () => {
         tutorial.style.display = "none";
         gameContainer.style.display = "flex";
         winOptions.style.display = "none";
-        testControls.style.display = isTestMode ? "flex" : "none"; // Show test controls if test mode is active
+        testControls.style.display = isTestMode ? "flex" : "none";
         message.style.color = "white";
         document.body.style.backgroundColor = "#333";
         resetGame();
