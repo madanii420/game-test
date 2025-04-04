@@ -78,6 +78,12 @@ body {
     margin-top: 10px;
 }
 
+#test-mode-message {
+    font-size: 1.4rem;
+    color: #FFCA28;
+    margin-top: 10px;
+}
+
 #version {
     font-size: 1rem;
     color: white;
